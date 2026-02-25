@@ -5,10 +5,23 @@ import axios from "axios";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-// After NextAuth login, exchange GitHub token for Express JWT cookie
+// Sets up axios Authorization header from sessionStorage on every page load
+function setupAxiosAuth() {
+    const token = sessionStorage.getItem("gt_token");
+    if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
+}
+
+// After NextAuth login, get Express JWT and store in sessionStorage
 function CookieSyncer() {
     const { data: session, status } = useSession();
     const synced = useRef(false);
+
+    useEffect(() => {
+        // Restore token from sessionStorage on mount
+        setupAxiosAuth();
+    }, []);
 
     useEffect(() => {
         if (status === "authenticated" && !synced.current && (session as any)?.accessToken) {
@@ -16,7 +29,17 @@ function CookieSyncer() {
             axios.post(`${API}/api/auth/cookie`,
                 { accessToken: (session as any).accessToken },
                 { withCredentials: true }
-            ).catch(() => { synced.current = false; }); // retry if failed
+            ).then((res) => {
+                if (res.data?.token) {
+                    sessionStorage.setItem("gt_token", res.data.token);
+                    axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
+                }
+            }).catch(() => { synced.current = false; });
+        }
+        // Clear token on logout
+        if (status === "unauthenticated") {
+            sessionStorage.removeItem("gt_token");
+            delete axios.defaults.headers.common["Authorization"];
         }
     }, [status, session]);
 

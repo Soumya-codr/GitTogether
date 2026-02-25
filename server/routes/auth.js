@@ -51,7 +51,7 @@ router.post("/cookie", async (req, res) => {
         });
         if (!user) return res.status(404).json({ error: "User not synced yet" });
 
-        // Sign Express JWT and set cookie
+        // Sign Express JWT and set cookie + return in body
         const token = signToken(user.id);
         res.cookie("token", token, {
             httpOnly: true,
@@ -60,7 +60,8 @@ router.post("/cookie", async (req, res) => {
             maxAge: 8 * 60 * 60 * 1000, // 8 hours
         });
 
-        res.json({ ok: true, userId: user.id });
+        res.json({ ok: true, userId: user.id, token }); // return token for sessionStorage fallback
+
     } catch (err) {
         console.error("Cookie exchange error:", err.message);
         res.status(500).json({ error: err.message });
