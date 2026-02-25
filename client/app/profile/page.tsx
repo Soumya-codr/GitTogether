@@ -9,7 +9,7 @@ import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import RepoCard from "@/components/profile/RepoCard";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 
 export default function ProfilePage() {
     const { data: session, status } = useSession();
@@ -28,11 +28,7 @@ export default function ProfilePage() {
             setLoading(true);
             setError(null);
             try {
-                // Try the full backend endpoint first
-                const res = await axios.get(`${API}/api/users/me/full`, {
-                    withCredentials: true,
-                    timeout: 8000,
-                });
+                const res = await axios.get(`/api/users/me/full`, { timeout: 8000 });
                 setProfile(res.data);
             } catch (err: any) {
                 // Fallback: build profile directly from NextAuth session + GitHub API

@@ -8,7 +8,7 @@ import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import EmptyState from "@/components/shared/EmptyState";
 import MatchListItem from "@/components/matches/MatchListItem";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 
 export default function MatchesPage() {
     const { status } = useSession();
@@ -20,7 +20,7 @@ export default function MatchesPage() {
 
     useEffect(() => {
         if (status !== "authenticated") return;
-        axios.get(`${API}/api/matches`, { withCredentials: true })
+        axios.get(`/api/matches`)
             .then((r) => setMatches(r.data))
             .catch(() => { })
             .finally(() => setLoading(false));

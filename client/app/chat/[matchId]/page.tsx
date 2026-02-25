@@ -8,7 +8,7 @@ import ChatTopBar from "@/components/chat/ChatTopBar";
 import MessageBubble from "@/components/chat/MessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 
 export default function ChatPage() {
     const { status } = useSession();
@@ -24,12 +24,12 @@ export default function ChatPage() {
 
     useEffect(() => {
         if (status !== "authenticated") return;
-        axios.get(`${API}/api/users/me`, { withCredentials: true }).then((r) => setMyId(r.data.id)).catch(() => { });
+        axios.get(`/api/users/me`).then((r) => setMyId(r.data.id)).catch(() => { });
     }, [status]);
 
     const fetchMessages = async () => {
         try {
-            const res = await axios.get(`${API}/api/messages/${matchId}`, { withCredentials: true });
+            const res = await axios.get(`/api/messages/${matchId}`);
             setMessages(res.data);
             setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 80);
         } catch { }
@@ -44,7 +44,7 @@ export default function ChatPage() {
     }, [matchId, status]);
 
     const handleSend = async (text: string) => {
-        await axios.post(`${API}/api/messages/${matchId}`, { messageText: text }, { withCredentials: true });
+        await axios.post(`/api/messages/${matchId}`, { messageText: text });
         fetchMessages();
     };
 

@@ -12,7 +12,7 @@ import MatchPopup from "@/components/discover/MatchPopup";
 import IntentBanner from "@/components/discover/IntentBanner";
 import { INTENT_CONFIGS, DEFAULT_INTENT } from "@/lib/intentConfig";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 
 export default function DiscoverPage() {
     const { data: session, status } = useSession();
@@ -35,7 +35,7 @@ export default function DiscoverPage() {
     const fetchDeck = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${API}/api/discover?intent=${intentMode}`, { withCredentials: true });
+            const res = await axios.get(`/api/discover?intent=${intentMode}`);
             setDeck(res.data);
         } catch { }
         finally { setLoading(false); }
@@ -46,7 +46,7 @@ export default function DiscoverPage() {
     const handleSwipe = async (targetId: string, swipeType: "like" | "pass" | "superlike") => {
         setDeck((prev) => prev.filter((d) => d.id !== targetId));
         try {
-            const res = await axios.post(`${API}/api/swipes`, { targetId, swipeType }, { withCredentials: true });
+            const res = await axios.post(`/api/swipes`, { targetId, swipeType });
             if (res.data.matched) {
                 setMatchVisible(true);
                 setTimeout(() => setMatchVisible(false), 4000);

@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model User {
+  id             String   @id @default(cuid())
+  githubId       String   @unique
+  username       String   @unique
+  name           String?
+  avatarUrl      String?
+  bio            String?
+  location       String?
+  primaryStack   Json     @default("[]")
+  intentMode     String   @default("networking") // networking | collab | dating
+  hideLocation   Boolean  @default(false)
+  hideDating     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  repositories   Repository[]
+  swipesGiven    Swipe[]      @relation("SwiperSwipes")
+  swipesReceived Swipe[]      @relation("TargetSwipes")
+  matchesAsUser1 Match[]      @relation("MatchUser1")
+  matchesAsUser2 Match[]      @relation("MatchUser2")
+  messages       Message[]
+}
+
+model Repository {
+  id       String  @id @default(cuid())
+  userId   String
+  repoName String
+  language String?
+  stars    Int     @default(0)
+  forks    Int     @default(0)
+  topics   Json    @default("[]")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Swipe {
+  id        String   @id @default(cuid())
+  swiperId  String
+  targetId  String
+  swipeType String   // like | pass | superlike
+  createdAt DateTime @default(now())
+
+  swiper User @relation("SwiperSwipes", fields: [swiperId], references: [id], onDelete: Cascade)
+  target User @relation("TargetSwipes", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, targetId])
+}
+
+model Match {
+  id                 String   @id @default(cuid())
+  user1Id            String
+  user2Id            String
+  compatibilityScore Float    @default(0)
+  createdAt          DateTime @default(now())
+
+  user1    User      @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2    User      @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([user1Id, user2Id])
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  matchId     String
+  senderId    String
+  messageText String
+  createdAt   DateTime @default(now())
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender User  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
