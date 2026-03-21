@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 
 interface ChatTopBarProps {
     title?: string;
+    matchId?: string;
 }
 
 export default function ChatTopBar({ title = "Chat" }: ChatTopBarProps) {
