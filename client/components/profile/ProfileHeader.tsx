@@ -69,7 +69,7 @@ export default function ProfileHeader({ avatarUrl, name, username, bio, location
                             borderRadius: "1.25rem",
                             border: "4px solid var(--bg-card)",
                             boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
-                            objectCover: "cover",
+                            objectFit: "cover",
                         }}
                     />
                 </div>
