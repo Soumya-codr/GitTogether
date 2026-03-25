@@ -76,7 +76,7 @@ export default function ProfileHeader({ avatarUrl, name, username, bio, location
 
                 {/* Name */}
                 <div style={{ marginTop: "1rem" }}>
-                    <h1 style={{ fontSize: "1.6rem", fontBlack: 900, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>{name || username}</h1>
+                    <h1 style={{ fontSize: "1.6rem", fontWeight: 900, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>{name || username}</h1>
                     <a
                         href={githubStats.githubUrl || `https://github.com/${username}`}
                         target="_blank"
