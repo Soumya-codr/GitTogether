@@ -23,11 +23,23 @@ router.get("/", requireAuth, async (req, res) => {
         const excludedIds = excluded.map((s) => s.targetId);
         excludedIds.push(req.userId); // exclude self
 
-        console.log(`🔍 Discover for ${req.userId}: Excluded ${excludedIds.length} users (Likes/Self)`);
+        // MATCHES: Also exclude people we are already matched with
+        const matches = await prisma.match.findMany({
+            where: {
+                OR: [{ user1Id: req.userId }, { user2Id: req.userId }]
+            },
+            select: { user1Id: true, user2Id: true }
+        });
+        matches.forEach(m => {
+            excludedIds.push(m.user1Id === req.userId ? m.user2Id : m.user1Id);
+        });
+
+        const totalUsersPool = await prisma.user.count({ where: { id: { notIn: [req.userId] } } });
+        console.log(`📊 DB Snapshot: Total other users: ${totalUsersPool}. Already excluded (Liked/Matched): ${excludedIds.length - 1}`);
 
         // Fetch candidate pool
-        const whereClause = {
-            id: { notIn: excludedIds },
+        let whereClause = {
+            id: { notIn: Array.from(new Set(excludedIds)) },
         };
 
         // Only apply dating filter if in dating mode
@@ -35,23 +47,39 @@ router.get("/", requireAuth, async (req, res) => {
             whereClause.hideDating = false;
         }
 
-        const candidates = await prisma.user.findMany({
+        let candidates = await prisma.user.findMany({
             where: whereClause,
             include: { repositories: true },
-            take: 100, // Increase pool size for better discovery
+            take: 100,
         });
 
-        console.log(`✅ Found ${candidates.length} potential candidates`);
+        // FALLBACK: If pool is empty, maybe privacy filters are too strict? 
+        // Try without hideDating for a moment if that was the bottleneck (only if not strictly dating)
+        if (candidates.length === 0 && totalUsersPool > (excludedIds.length - 1)) {
+            console.log("⚠️ Pool empty but users exist. Retrying with permissive filters...");
+            candidates = await prisma.user.findMany({
+                where: { id: { notIn: Array.from(new Set(excludedIds)) } },
+                include: { repositories: true },
+                take: 100,
+            });
+        }
 
-        // Score and sort
+        console.log(`✅ Final Candidate Pool: ${candidates.length} users found.`);
+
+        // Score, sort and add a bit of randomness to equal scores
         const scored = candidates
             .map((c) => ({
                 ...c,
                 compatibilityScore: calculateCompatibility(currentUser, c),
-                // respect privacy: strip location if user has it hidden
                 location: c.hideLocation ? null : c.location,
+                randomSort: Math.random(), // Add randomness for fresh feel
             }))
-            .sort((a, b) => b.compatibilityScore - a.compatibilityScore)
+            .sort((a, b) => {
+                if (b.compatibilityScore !== a.compatibilityScore) {
+                    return b.compatibilityScore - a.compatibilityScore;
+                }
+                return b.randomSort - a.randomSort;
+            })
             .slice(0, 20);
 
         res.json(scored);
