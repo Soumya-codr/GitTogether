@@ -19,17 +19,31 @@ export async function GET(req: NextRequest) {
     const currentUser = await getCurrentUser(session);
     if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    // Get all users this user has already swiped
+    // Get only LIKED/SUPERLIKED users — passes are soft rejections and will recycle back
     const swiped = await prisma.swipe.findMany({
-        where: { swiperId: currentUser.id },
+        where: {
+            swiperId: currentUser.id,
+            swipeType: { in: ["like", "superlike"] },
+        },
         select: { targetId: true },
     });
     const swipedIds = swiped.map((s) => s.targetId);
     swipedIds.push(currentUser.id); // exclude self
 
+    // Also exclude already matched users
+    const matches = await prisma.match.findMany({
+        where: { OR: [{ user1Id: currentUser.id }, { user2Id: currentUser.id }] },
+        select: { user1Id: true, user2Id: true },
+    });
+    const matchedIds = matches.map((m) =>
+        m.user1Id === currentUser.id ? m.user2Id : m.user1Id
+    );
+
+    const excludedIds = Array.from(new Set([...swipedIds, ...matchedIds]));
+
     const candidates = await prisma.user.findMany({
         where: {
-            id: { notIn: swipedIds },
+            id: { notIn: excludedIds },
             ...(currentUser.intentMode === "dating" ? { hideDating: false } : {}),
         },
         include: { repositories: true },

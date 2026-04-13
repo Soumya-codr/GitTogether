@@ -48,11 +48,19 @@ router.get("/", requireAuth, async (req, res) => {
             take: 100,
         });
 
-        // RE-DISCOVERY FALLBACK: If pool is empty, but we have users we previously PASSed
-        if (candidates.length === 0 && totalOtherUsers > (excludedIds.length - 1)) {
-            console.log("♻️ Pool empty. Recycling 'Passed' users and relaxing filters...");
+        // RECYCLE FALLBACK: Pool is empty — show previously passed users again
+        if (candidates.length === 0) {
+            console.log("♻️ Pool empty — recycling passed users back into feed...");
+            const passSwipes = await prisma.swipe.findMany({
+                where: { swiperId: req.userId, swipeType: "pass" },
+                select: { targetId: true },
+                orderBy: { createdAt: "asc" }, // Show oldest passes first
+                take: 100,
+            });
+            const passIds = passSwipes.map((s) => s.targetId);
+            const recycleExcluded = Array.from(new Set([req.userId, ...likedIds, ...matchedIds]));
             candidates = await prisma.user.findMany({
-                where: { id: { notIn: excludedIds } }, // Strictly only exclude Likes/Matches/Self
+                where: { id: { in: passIds, notIn: recycleExcluded } },
                 include: { repositories: true },
                 take: 100,
             });

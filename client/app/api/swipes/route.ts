@@ -23,11 +23,14 @@ export async function POST(req: NextRequest) {
     if (!targetId || !swipeType) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
     try {
-        await prisma.swipe.create({
-            data: { swiperId: currentUser.id, targetId, swipeType },
+        // Upsert: handles the case where user passed someone before and now likes them
+        // (after they recycled back into the feed)
+        await prisma.swipe.upsert({
+            where: { swiperId_targetId: { swiperId: currentUser.id, targetId } },
+            create: { swiperId: currentUser.id, targetId, swipeType },
+            update: { swipeType },
         });
     } catch {
-        // Duplicate swipe — ignore
         return NextResponse.json({ matched: false });
     }
 
