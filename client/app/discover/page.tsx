@@ -60,9 +60,9 @@ export default function DiscoverPage() {
     const current = deck[0];
 
     return (
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: `radial-gradient(ellipse at 50% 0%, ${intentConfig.accentColor}10 0%, transparent 70%), var(--bg-main)`, transition: "background 0.6s ease" }}>
             <Navbar />
-            <MatchPopup visible={matchVisible} />
+            <MatchPopup visible={matchVisible} intentMode={intentMode} />
 
             <main style={{
                 flex: 1,
