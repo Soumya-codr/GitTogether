@@ -68,27 +68,80 @@ function ModeBody({ developer, intentConfig }: { developer: Developer; intentCon
     const repos = developer.repositories || [];
 
     if (mode === "networking") {
+        const totalStars = repos.reduce((s, r) => s + r.stars, 0);
+        const langCount  = new Set(repos.map(r => r.language).filter(Boolean)).size;
+        const stack      = (developer.primaryStack as string[]);
+
+        // Detect professional signals from bio
+        const bio = (developer.bio || "").toLowerCase();
+        const signals: string[] = [];
+        if (bio.includes("open source") || bio.includes("opensource")) signals.push("🌍 Open Source");
+        if (bio.includes("freelanc")) signals.push("💼 Freelance");
+        if (bio.includes("mentor"))   signals.push("🎓 Mentor");
+        if (bio.includes("hire") || bio.includes("looking for")) signals.push("🟢 Open to Work");
+        if (bio.includes("student"))  signals.push("📚 Student");
+        if (signals.length === 0)     signals.push("💡 Building");
+
         return (
             <>
-                {developer.bio && (
-                    <p className="text-sm leading-relaxed line-clamp-2" style={{ color: "#a0a0a0" }}>
-                        {developer.bio}
-                    </p>
-                )}
+                {/* Professional Stats Row */}
+                <div style={{
+                    display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
+                    gap: "0.4rem", padding: "0.75rem",
+                    borderRadius: "0.75rem",
+                    background: `${accent}0d`,
+                    border: `1px solid ${accent}20`,
+                }}>
+                    {[
+                        { label: "Projects", value: repos.length },
+                        { label: "Stars",    value: totalStars },
+                        { label: "Languages",value: langCount },
+                    ].map(({ label, value }) => (
+                        <div key={label} style={{ textAlign: "center" }}>
+                            <p style={{ fontSize: "1.3rem", fontWeight: 900, color: accent, lineHeight: 1 }}>{value}</p>
+                            <p style={{ fontSize: "0.6rem", color: "#666", marginTop: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Primary Expertise — language dots + name */}
                 <div>
-                    <p className="text-xs mb-2 uppercase tracking-widest" style={{ color: "#666" }}>Top Skills</p>
-                    <div className="flex flex-wrap gap-2">
-                        {(developer.primaryStack as string[]).slice(0, 5).map(lang => (
-                            <span key={lang} className="text-xs font-semibold px-3 py-1 rounded-full"
-                                style={{ background: `${LANG_COLORS[lang] || accent}15`, color: LANG_COLORS[lang] || accent, border: `1px solid ${LANG_COLORS[lang] || accent}40` }}>
+                    <p style={{ fontSize: "0.65rem", color: "#555", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.4rem" }}>
+                        Primary Expertise
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                        {stack.slice(0, 5).map(lang => (
+                            <span key={lang} style={{
+                                display: "flex", alignItems: "center", gap: "0.3rem",
+                                fontSize: "0.72rem", fontWeight: 600,
+                                padding: "0.25rem 0.65rem", borderRadius: "0.4rem",
+                                background: `${LANG_COLORS[lang] || accent}12`,
+                                color: LANG_COLORS[lang] || accent,
+                                border: `1px solid ${LANG_COLORS[lang] || accent}35`,
+                            }}>
+                                <span style={{ width: 6, height: 6, borderRadius: "50%", background: LANG_COLORS[lang] || accent, flexShrink: 0 }} />
                                 {lang}
                             </span>
                         ))}
                     </div>
                 </div>
-                <div className="mt-auto flex items-center gap-2 p-2.5 rounded-lg" style={{ background: `${accent}10`, border: `1px solid ${accent}25` }}>
-                    <span style={{ color: accent }}>🤝</span>
-                    <span className="text-xs font-medium" style={{ color: accent }}>Open to professional connections</span>
+
+                {/* Professional signals */}
+                <div style={{ marginTop: "auto", display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+                    {signals.slice(0, 3).map(s => (
+                        <span key={s} style={{
+                            fontSize: "0.65rem", fontWeight: 700,
+                            padding: "0.2rem 0.55rem", borderRadius: "999px",
+                            background: "rgba(255,255,255,0.05)",
+                            color: "#888", border: "1px solid rgba(255,255,255,0.1)",
+                        }}>{s}</span>
+                    ))}
+                    <span style={{
+                        marginLeft: "auto", fontSize: "0.65rem", fontWeight: 700,
+                        color: accent, display: "flex", alignItems: "center", gap: "0.25rem",
+                    }}>
+                        🔗 {developer.compatibilityScore}% skill match
+                    </span>
                 </div>
             </>
         );
