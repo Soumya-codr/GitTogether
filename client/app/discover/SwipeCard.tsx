@@ -126,22 +126,34 @@ function ModeBody({ developer, intentConfig }: { developer: Developer; intentCon
                     </div>
                 </div>
 
-                {/* Professional signals */}
-                <div style={{ marginTop: "auto", display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
-                    {signals.slice(0, 3).map(s => (
-                        <span key={s} style={{
-                            fontSize: "0.65rem", fontWeight: 700,
-                            padding: "0.2rem 0.55rem", borderRadius: "999px",
-                            background: "rgba(255,255,255,0.05)",
-                            color: "#888", border: "1px solid rgba(255,255,255,0.1)",
-                        }}>{s}</span>
-                    ))}
-                    <span style={{
-                        marginLeft: "auto", fontSize: "0.65rem", fontWeight: 700,
-                        color: accent, display: "flex", alignItems: "center", gap: "0.25rem",
+                </div>
+                
+                {/* Simulated Barcode */}
+                <div style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", flex: 1 }}>
+                        {signals.slice(0, 3).map(s => (
+                            <span key={s} style={{
+                                fontSize: "0.65rem", fontWeight: 700,
+                                padding: "0.2rem 0.55rem", borderRadius: "999px",
+                                background: "rgba(255,255,255,0.05)",
+                                color: "#888", border: "1px solid rgba(255,255,255,0.1)",
+                            }}>{s}</span>
+                        ))}
+                    </div>
+                    {/* Barcode graphic */}
+                    <div style={{ 
+                        fontFamily: "'Libre Barcode 39', monospace", 
+                        fontSize: "1.7rem", 
+                        color: `${accent}80`,
+                        opacity: 0.6,
+                        height: "30px",
+                        overflow: "hidden",
+                        letterSpacing: "2px",
+                        transform: "scaleY(1.5)",
+                        transformOrigin: "bottom"
                     }}>
-                        🔗 {developer.compatibilityScore}% skill match
-                    </span>
+                        ||||| ||| || ||| ||
+                    </div>
                 </div>
             </>
         );
@@ -358,21 +370,56 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                 </motion.div>
             )}
 
-            <div className="w-full h-full flex flex-col overflow-hidden select-none"
-                style={{ background: "var(--bg-card)", border: `1px solid ${accent}20`, borderRadius: "1.25rem", boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px ${accent}10` }}>
+            <div className="w-full h-full flex flex-col overflow-hidden select-none relative"
+                style={{ 
+                    background: intentConfig.id === "networking" ? `linear-gradient(145deg, #16181d 0%, #0d0f12 100%)` : "var(--bg-card)", 
+                    border: `1px solid ${accent}20`, 
+                    borderRadius: "1.25rem", 
+                    boxShadow: intentConfig.id === "networking" 
+                        ? `0 20px 60px rgba(0,0,0,0.5), 0 0 0 2px ${accent}30, inset 0 0 20px ${accent}10` 
+                        : `0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px ${accent}10` 
+                }}>
+
+                {/* Networking ID Card Exclusives */}
+                {intentConfig.id === "networking" && (
+                    <>
+                        {/* Animated Holographic Scan Line */}
+                        <motion.div
+                            animate={{ top: ["-10%", "110%", "-10%"] }}
+                            transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                            style={{
+                                position: "absolute",
+                                left: 0, right: 0,
+                                height: "8px",
+                                background: `linear-gradient(to bottom, transparent, ${accent}80, transparent)`,
+                                boxShadow: `0 0 15px ${accent}, 0 0 30px ${accent}50`,
+                                zIndex: 30,
+                                pointerEvents: "none",
+                                opacity: 0.3
+                            }}
+                        />
+                        {/* Lanyard Hole */}
+                        <div style={{
+                            position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)",
+                            width: 60, height: 12, borderRadius: 10,
+                            background: "#000", border: `1px solid ${accent}40`,
+                            boxShadow: "inset 0 2px 4px rgba(0,0,0,0.8)",
+                            zIndex: 30
+                        }} />
+                    </>
+                )}
 
                 {/* Card Header */}
                 <div className="relative h-40 flex items-end p-4 shrink-0" style={{ background: headerGradient }}>
-                    {/* Mode badge top-left */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold"
-                        style={{ background: `${accent}25`, color: accent, border: `1px solid ${accent}40`, backdropFilter: "blur(8px)" }}>
-                        {intentConfig.emoji} {intentConfig.label}
+                    {/* Mode badge top-left / compatibility */}
+                    <div className="absolute top-4 left-4 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold"
+                        style={{ background: intentConfig.id === "networking" ? "rgba(0,0,0,0.6)" : `${accent}25`, color: accent, border: `1px solid ${accent}40`, backdropFilter: "blur(8px)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        {intentConfig.id === "networking" ? `ID: DEV-${developer.id.substring(0,6)}` : <>{intentConfig.emoji} {intentConfig.label}</>}
                     </div>
 
-                    {/* Compatibility score top-right */}
-                    <div className="absolute top-3 right-3 px-2.5 py-1 text-xs font-black rounded-lg"
-                        style={{ background: "rgba(0,0,0,0.4)", color: accent, border: `1px solid ${accent}40`, backdropFilter: "blur(8px)" }}>
-                        {developer.compatibilityScore}% match
+                    <div className="absolute top-4 right-4 px-2.5 py-1 text-xs font-black rounded-md"
+                        style={{ background: "rgba(0,0,0,0.6)", color: intentConfig.id === "networking" ? "#fbbf24" : accent, border: `1px solid ${intentConfig.id === "networking" ? "#fbbf24" : accent}40`, backdropFilter: "blur(8px)" }}>
+                        {intentConfig.id === "networking" ? `MATCH: ${developer.compatibilityScore}%` : `${developer.compatibilityScore}% match`}
                     </div>
 
                     {/* Avatar + name */}
@@ -383,12 +430,30 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                             style={{ width: 64, height: 64, borderRadius: "0.875rem", border: `2px solid ${accent}60`, flexShrink: 0 }}
                         />
                         <div className="min-w-0">
-                            <h2 className="text-base font-bold text-white truncate leading-tight">{developer.name || developer.username}</h2>
-                            <p className="text-xs truncate" style={{ color: `${accent}cc` }}>@{developer.username}</p>
+                            <h2 className="text-lg font-black text-white truncate leading-tight uppercase font-mono">{developer.name || developer.username}</h2>
+                            <p className="text-xs truncate font-mono mt-0.5" style={{ color: `${accent}cc` }}>HANDLE: @{developer.username}</p>
                             {developer.location && (
-                                <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.5)" }}>📍 {developer.location}</p>
+                                <p className="text-xs mt-0.5 truncate font-mono uppercase" style={{ color: "rgba(255,255,255,0.5)" }}>LOC: {developer.location}</p>
                             )}
                         </div>
+                        {/* Gold Microchip (Networking only) */}
+                        {intentConfig.id === "networking" && (
+                            <div style={{
+                                position: "absolute", right: 20, bottom: 20,
+                                width: 36, height: 28, borderRadius: 6,
+                                background: "linear-gradient(135deg, #d4af37 0%, #aa8410 100%)",
+                                border: "1px solid #7c620c",
+                                display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignContent: "space-between", padding: 4,
+                                opacity: 0.9,
+                                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.3)"
+                            }}>
+                                <div style={{width: "8px", height: "1px", background: "rgba(0,0,0,0.2)"}}></div>
+                                <div style={{width: "8px", height: "1px", background: "rgba(0,0,0,0.2)"}}></div>
+                                <div style={{width: "100%", height: "8px", background: "rgba(0,0,0,0.1)", margin: "2px 0"}}></div>
+                                <div style={{width: "8px", height: "1px", background: "rgba(0,0,0,0.2)"}}></div>
+                                <div style={{width: "8px", height: "1px", background: "rgba(0,0,0,0.2)"}}></div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
