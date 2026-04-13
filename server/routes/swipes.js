@@ -54,4 +54,63 @@ router.post("/", requireAuth, async (req, res) => {
     }
 });
 
+// GET /api/swipes/pending — users I liked but haven't matched with yet
+router.get("/pending", requireAuth, async (req, res) => {
+    try {
+        // All users I've liked/superliked
+        const myLikes = await prisma.swipe.findMany({
+            where: {
+                swiperId: req.userId,
+                swipeType: { in: ["like", "superlike"] },
+            },
+            include: {
+                target: {
+                    select: {
+                        id: true, username: true, name: true,
+                        avatarUrl: true, primaryStack: true, bio: true,
+                    },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+
+        // Get all my matched user IDs to exclude them
+        const myMatches = await prisma.match.findMany({
+            where: { OR: [{ user1Id: req.userId }, { user2Id: req.userId }] },
+            select: { user1Id: true, user2Id: true },
+        });
+        const matchedIds = new Set(
+            myMatches.map((m) => m.user1Id === req.userId ? m.user2Id : m.user1Id)
+        );
+
+        // Pending = liked but NOT yet matched
+        const pending = myLikes
+            .filter((s) => !matchedIds.has(s.targetId))
+            .map((s) => ({
+                targetId: s.targetId,
+                swipeType: s.swipeType,
+                likedAt: s.createdAt,
+                user: s.target,
+            }));
+
+        res.json(pending);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /api/swipes/pending?targetId=xxx — undo a like, returns them to discover queue
+router.delete("/pending", requireAuth, async (req, res) => {
+    const { targetId } = req.query;
+    if (!targetId) return res.status(400).json({ error: "targetId required" });
+    try {
+        await prisma.swipe.deleteMany({
+            where: { swiperId: req.userId, targetId },
+        });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
