@@ -107,6 +107,7 @@ export default function DiscoverPage() {
                             onSuperLike={() => handleSwipe(current.id, "superlike")}
                             onLike={() => handleSwipe(current.id, "like")}
                             accentColor={intentConfig.accentColor}
+                            likeLabel={intentConfig.likeLabel}
                         />
 
                         <p style={{ fontSize: "0.73rem", color: "var(--muted)" }}>

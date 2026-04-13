@@ -1,14 +1,6 @@
 "use client";
+import { INTENT_CONFIGS } from "@/lib/intentConfig";
 import IntentCard from "./IntentCard";
-
-const INTENTS = [
-    { id: "networking", emoji: "💼", label: "Professional Networking" },
-    { id: "collab", emoji: "🚀", label: "Project Collaboration" },
-    { id: "hackathon", emoji: "🏆", label: "Hackathon Partner" },
-    { id: "learning", emoji: "📚", label: "Learning Buddy" },
-    { id: "dating", emoji: "💝", label: "Dating Mode" },
-    { id: "casual", emoji: "🎮", label: "Casual Dev Connect" },
-];
 
 interface IntentGridProps {
     selected: string | null;
@@ -17,15 +9,21 @@ interface IntentGridProps {
 }
 
 export default function IntentGrid({ selected, loading, onSelect }: IntentGridProps) {
+    const intents = Object.keys(INTENT_CONFIGS);
+
     return (
-        <div className="intent-grid">
-            {INTENTS.map((intent, i) => (
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "1rem",
+            width: "100%",
+            maxWidth: 560,
+        }}>
+            {intents.map((id, i) => (
                 <IntentCard
-                    key={intent.id}
-                    id={intent.id}
-                    emoji={intent.emoji}
-                    label={intent.label}
-                    selected={selected === intent.id}
+                    key={id}
+                    id={id}
+                    selected={selected === id}
                     disabled={loading}
                     index={i}
                     onSelect={onSelect}
