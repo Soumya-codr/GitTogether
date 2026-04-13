@@ -19,13 +19,13 @@ export default function IntentPage() {
         setSelected(id);
         setLoading(true);
         localStorage.setItem("gt_intent", id);
-        try {
-            await api.patch(`/api/users/me`, { intentMode: id });
-        } catch { /* non-fatal */ }
-        finally {
-            setLoading(false);
-            router.push("/discover");
-        }
+        // Minimum 1.5s delay so the portal animation is clearly visible
+        const [, ] = await Promise.all([
+            api.patch(`/api/users/me`, { intentMode: id }).catch(() => {}),
+            new Promise(res => setTimeout(res, 1500)),
+        ]);
+        setLoading(false);
+        router.push("/discover");
     }
 
     return (
@@ -125,9 +125,9 @@ export default function IntentPage() {
                     }}
                 >
                     <motion.div
-                        animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-                        transition={{ repeat: Infinity, duration: 1 }}
-                        style={{ fontSize: "4rem" }}
+                        animate={{ scale: [1, 1.25, 0.95, 1.2, 1], rotate: [0, 12, -12, 8, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
+                        style={{ fontSize: "5rem" }}
                     >
                         {INTENT_CONFIGS[selected]?.emoji}
                     </motion.div>

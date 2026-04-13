@@ -49,7 +49,7 @@ export default function DiscoverPage() {
             const res = await api.post(`/api/swipes`, { targetId, swipeType });
             if (res.data.matched) {
                 setMatchVisible(true);
-                setTimeout(() => setMatchVisible(false), 4000);
+                setTimeout(() => setMatchVisible(false), 5500);
             }
         } catch { }
     };

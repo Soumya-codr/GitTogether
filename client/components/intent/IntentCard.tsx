@@ -19,9 +19,9 @@ export default function IntentCard({ id, selected, disabled, index, onSelect }: 
 
     return (
         <motion.button
-            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+            initial={{ opacity: 0, y: 28, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: index * 0.08, type: "spring", stiffness: 200, damping: 20 }}
+            transition={{ delay: index * 0.12, type: "spring", stiffness: 160, damping: 18 }}
             whileHover={{ scale: 1.04, y: -5 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => onSelect(id)}
