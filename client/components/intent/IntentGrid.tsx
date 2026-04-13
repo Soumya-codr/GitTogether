@@ -17,7 +17,8 @@ export default function IntentGrid({ selected, loading, onSelect }: IntentGridPr
             gridTemplateColumns: "1fr 1fr",
             gap: "1rem",
             width: "100%",
-            maxWidth: 560,
+            maxWidth: 580,
+            margin: "0 auto",
         }}>
             {intents.map((id, i) => (
                 <IntentCard

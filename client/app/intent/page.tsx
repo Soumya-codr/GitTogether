@@ -105,10 +105,7 @@ export default function IntentPage() {
                 </AnimatePresence>
             </motion.div>
 
-            {/* Six Worlds Grid */}
-            <div style={{ position: "relative", zIndex: 1, width: "100%" }}>
-                <IntentGrid selected={selected} loading={loading} onSelect={handleSelect} />
-            </div>
+            <IntentGrid selected={selected} loading={loading} onSelect={handleSelect} />
 
             {/* Loading overlay */}
             {loading && selected && (
