@@ -126,8 +126,6 @@ function ModeBody({ developer, intentConfig }: { developer: Developer; intentCon
                     </div>
                 </div>
 
-                </div>
-                
                 {/* Simulated Barcode */}
                 <div style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", flex: 1 }}>
