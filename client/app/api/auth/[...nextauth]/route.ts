@@ -58,6 +58,23 @@ export const authOptions: NextAuthOptions = {
                         primaryStack: [],
                     },
                 });
+
+                // Trigger backend to sync repositories and compute primary stack
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+                fetch(`${apiUrl}/api/auth/sync`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        accessToken: account?.access_token,
+                        githubId: p.githubId ?? String(p.id),
+                        username: p.login,
+                        name: p.name,
+                        avatarUrl: p.image ?? p.avatar_url,
+                        bio: p.bio,
+                        location: p.location,
+                    })
+                }).catch(err => console.error("Failed to trigger repo sync:", err));
+
             } catch (err) {
                 console.error("DB sync failed (non-fatal):", err);
             }
