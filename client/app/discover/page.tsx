@@ -10,6 +10,7 @@ import { SwipeCard } from "@/components/discover/SwipeCard";
 import ActionButtons from "@/components/discover/ActionButtons";
 import MatchPopup from "@/components/discover/MatchPopup";
 import IntentBanner from "@/components/discover/IntentBanner";
+import NetworkingFeed from "@/components/discover/NetworkingFeed";
 import { INTENT_CONFIGS, DEFAULT_INTENT } from "@/lib/intentConfig";
 
 
@@ -87,6 +88,8 @@ export default function DiscoverPage() {
                         actionLabel="Refresh"
                         onAction={fetchDeck}
                     />
+                ) : intentMode === "networking" ? (
+                    <NetworkingFeed deck={deck} onConnect={handleSwipe} intentConfig={intentConfig} />
                 ) : (
                     <>
                         <div className="card-deck-container">
