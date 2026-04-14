@@ -69,91 +69,37 @@ function ModeBody({ developer, intentConfig }: { developer: Developer; intentCon
 
     if (mode === "networking") {
         const totalStars = repos.reduce((s, r) => s + r.stars, 0);
-        const langCount  = new Set(repos.map(r => r.language).filter(Boolean)).size;
         const stack      = (developer.primaryStack as string[]);
 
-        // Detect professional signals from bio
-        const bio = (developer.bio || "").toLowerCase();
-        const signals: string[] = [];
-        if (bio.includes("open source") || bio.includes("opensource")) signals.push("🌍 Open Source");
-        if (bio.includes("freelanc")) signals.push("💼 Freelance");
-        if (bio.includes("mentor"))   signals.push("🎓 Mentor");
-        if (bio.includes("hire") || bio.includes("looking for")) signals.push("🟢 Open to Work");
-        if (bio.includes("student"))  signals.push("📚 Student");
-        if (signals.length === 0)     signals.push("💡 Building");
-
         return (
-            <>
-                {/* Professional Stats Row */}
-                <div style={{
-                    display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
-                    gap: "0.4rem", padding: "0.75rem",
-                    borderRadius: "0.75rem",
-                    background: `${accent}0d`,
-                    border: `1px solid ${accent}20`,
-                }}>
-                    {[
-                        { label: "Projects", value: repos.length },
-                        { label: "Stars",    value: totalStars },
-                        { label: "Languages",value: langCount },
-                    ].map(({ label, value }) => (
-                        <div key={label} style={{ textAlign: "center" }}>
-                            <p style={{ fontSize: "1.3rem", fontWeight: 900, color: accent, lineHeight: 1 }}>{value}</p>
-                            <p style={{ fontSize: "0.6rem", color: "#666", marginTop: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
-                        </div>
+            <div className="mt-4 pt-4 border-t" style={{ borderColor: `${accent}20` }}>
+                <p className="text-xs font-bold mb-2 uppercase tracking-wide" style={{ color: "#888" }}>Professional Highlights</p>
+                <div className="flex gap-4 mb-4">
+                    <div>
+                        <p className="text-sm font-bold text-white">{repos.length}</p>
+                        <p className="text-xs" style={{ color: "#888" }}>Projects</p>
+                    </div>
+                    <div>
+                        <p className="text-sm font-bold text-white">{totalStars}</p>
+                        <p className="text-xs" style={{ color: "#888" }}>Stars</p>
+                    </div>
+                </div>
+                <p className="text-xs font-bold mb-2 uppercase tracking-wide" style={{ color: "#888" }}>Top Skills</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                    {stack.slice(0, 5).map(lang => (
+                        <span key={lang} style={{
+                            display: "flex", alignItems: "center", gap: "0.25rem",
+                            fontSize: "0.7rem", fontWeight: 500,
+                            padding: "0.2rem 0.6rem", borderRadius: "0.25rem",
+                            background: "rgba(255,255,255,0.05)",
+                            color: "#ccc",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                        }}>
+                            {lang}
+                        </span>
                     ))}
                 </div>
-
-                {/* Primary Expertise — language dots + name */}
-                <div>
-                    <p style={{ fontSize: "0.65rem", color: "#555", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.4rem" }}>
-                        Primary Expertise
-                    </p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                        {stack.slice(0, 5).map(lang => (
-                            <span key={lang} style={{
-                                display: "flex", alignItems: "center", gap: "0.3rem",
-                                fontSize: "0.72rem", fontWeight: 600,
-                                padding: "0.25rem 0.65rem", borderRadius: "0.4rem",
-                                background: `${LANG_COLORS[lang] || accent}12`,
-                                color: LANG_COLORS[lang] || accent,
-                                border: `1px solid ${LANG_COLORS[lang] || accent}35`,
-                            }}>
-                                <span style={{ width: 6, height: 6, borderRadius: "50%", background: LANG_COLORS[lang] || accent, flexShrink: 0 }} />
-                                {lang}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Simulated Barcode */}
-                <div style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", flex: 1 }}>
-                        {signals.slice(0, 3).map(s => (
-                            <span key={s} style={{
-                                fontSize: "0.65rem", fontWeight: 700,
-                                padding: "0.2rem 0.55rem", borderRadius: "999px",
-                                background: "rgba(255,255,255,0.05)",
-                                color: "#888", border: "1px solid rgba(255,255,255,0.1)",
-                            }}>{s}</span>
-                        ))}
-                    </div>
-                    {/* Barcode graphic */}
-                    <div style={{ 
-                        fontFamily: "'Libre Barcode 39', monospace", 
-                        fontSize: "1.7rem", 
-                        color: `${accent}80`,
-                        opacity: 0.6,
-                        height: "30px",
-                        overflow: "hidden",
-                        letterSpacing: "2px",
-                        transform: "scaleY(1.5)",
-                        transformOrigin: "bottom"
-                    }}>
-                        ||||| ||| || ||| ||
-                    </div>
-                </div>
-            </>
+            </div>
         );
     }
 
@@ -368,98 +314,96 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                 </motion.div>
             )}
 
-            <div className="w-full h-full flex flex-col overflow-hidden select-none relative"
-                style={{ 
-                    background: intentConfig.id === "networking" ? `linear-gradient(145deg, #16181d 0%, #0d0f12 100%)` : "var(--bg-card)", 
-                    border: `1px solid ${accent}20`, 
-                    borderRadius: "1.25rem", 
-                    boxShadow: intentConfig.id === "networking" 
-                        ? `0 20px 60px rgba(0,0,0,0.5), 0 0 0 2px ${accent}30, inset 0 0 20px ${accent}10` 
-                        : `0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px ${accent}10` 
-                }}>
-
-                {/* Networking ID Card Exclusives */}
-                {intentConfig.id === "networking" && (
-                    <>
-                        {/* Animated Holographic Scan Line */}
-                        <motion.div
-                            animate={{ top: ["-10%", "110%", "-10%"] }}
-                            transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-                            style={{
-                                position: "absolute",
-                                left: 0, right: 0,
-                                height: "8px",
-                                background: `linear-gradient(to bottom, transparent, ${accent}80, transparent)`,
-                                boxShadow: `0 0 15px ${accent}, 0 0 30px ${accent}50`,
-                                zIndex: 30,
-                                pointerEvents: "none",
-                                opacity: 0.3
-                            }}
-                        />
-                        {/* Lanyard Hole */}
-                        <div style={{
-                            position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)",
-                            width: 60, height: 12, borderRadius: 10,
-                            background: "#000", border: `1px solid ${accent}40`,
-                            boxShadow: "inset 0 2px 4px rgba(0,0,0,0.8)",
-                            zIndex: 30
-                        }} />
-                    </>
-                )}
-
-                {/* Card Header */}
-                <div className="relative h-40 flex items-end p-4 shrink-0" style={{ background: headerGradient }}>
-                    {/* Mode badge top-left / compatibility */}
-                    <div className="absolute top-4 left-4 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold"
-                        style={{ background: intentConfig.id === "networking" ? "rgba(0,0,0,0.6)" : `${accent}25`, color: accent, border: `1px solid ${accent}40`, backdropFilter: "blur(8px)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        {intentConfig.id === "networking" ? `ID: DEV-${developer.id.substring(0,6)}` : <>{intentConfig.emoji} {intentConfig.label}</>}
+            {intentConfig.id === "networking" ? (
+                // LinkedIn Style Clean Layout for Networking
+                <div className="w-full h-full flex flex-col overflow-hidden select-none"
+                    style={{ background: "#18181A", border: `1px solid ${accent}40`, borderRadius: "1.25rem", boxShadow: `0 20px 60px rgba(0,0,0,0.5)` }}>
+                    
+                    {/* Cover Banner */}
+                    <div className="relative h-32 w-full shrink-0" style={{ background: "linear-gradient(135deg, #374151 0%, #1f2937 100%)" }}>
+                        <div className="absolute top-3 right-3 px-2 py-1 text-xs font-bold rounded-full"
+                            style={{ background: "rgba(0,0,0,0.6)", color: "white", backdropFilter: "blur(4px)" }}>
+                            {developer.compatibilityScore}% Match
+                        </div>
                     </div>
+                    
+                    {/* Profile Body */}
+                    <div className="flex-1 flex flex-col px-5 pb-5 relative">
+                        {/* Overlapping Avatar */}
+                        <div className="absolute -top-12 left-5 rounded-full p-[3px] bg-[#18181A]">
+                            <img
+                                src={developer.avatarUrl || `https://ui-avatars.com/api/?name=${developer.username}&background=111&color=fff`}
+                                alt={developer.username}
+                                className="w-[84px] h-[84px] rounded-full object-cover"
+                            />
+                        </div>
 
-                    <div className="absolute top-4 right-4 px-2.5 py-1 text-xs font-black rounded-md"
-                        style={{ background: "rgba(0,0,0,0.6)", color: intentConfig.id === "networking" ? "#fbbf24" : accent, border: `1px solid ${intentConfig.id === "networking" ? "#fbbf24" : accent}40`, backdropFilter: "blur(8px)" }}>
-                        {intentConfig.id === "networking" ? `MATCH: ${developer.compatibilityScore}%` : `${developer.compatibilityScore}% match`}
-                    </div>
-
-                    {/* Avatar + name */}
-                    <div className="flex items-end gap-3 z-10 w-full">
-                        <img
-                            src={developer.avatarUrl || `https://ui-avatars.com/api/?name=${developer.username}&background=111&color=fff`}
-                            alt={developer.username}
-                            style={{ width: 64, height: 64, borderRadius: "0.875rem", border: `2px solid ${accent}60`, flexShrink: 0 }}
-                        />
-                        <div className="min-w-0">
-                            <h2 className="text-lg font-black text-white truncate leading-tight uppercase font-mono">{developer.name || developer.username}</h2>
-                            <p className="text-xs truncate font-mono mt-0.5" style={{ color: `${accent}cc` }}>HANDLE: @{developer.username}</p>
+                        {/* Text Content */}
+                        <div className="mt-12">
+                            <h2 className="text-[1.35rem] font-bold text-white leading-tight">
+                                {developer.name || developer.username}
+                            </h2>
+                            <p className="text-sm mt-2 text-gray-300 leading-snug">
+                                {developer.bio || "Software Engineer"}
+                            </p>
                             {developer.location && (
-                                <p className="text-xs mt-0.5 truncate font-mono uppercase" style={{ color: "rgba(255,255,255,0.5)" }}>LOC: {developer.location}</p>
+                                <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                    </svg>
+                                    {developer.location}
+                                </p>
                             )}
                         </div>
-                        {/* Gold Microchip (Networking only) */}
-                        {intentConfig.id === "networking" && (
-                            <div style={{
-                                position: "absolute", right: 20, bottom: 20,
-                                width: 36, height: 28, borderRadius: 6,
-                                background: "linear-gradient(135deg, #d4af37 0%, #aa8410 100%)",
-                                border: "1px solid #7c620c",
-                                display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignContent: "space-between", padding: 4,
-                                opacity: 0.9,
-                                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.3)"
-                            }}>
-                                <div style={{width: "8px", height: "1px", background: "rgba(0,0,0,0.2)"}}></div>
-                                <div style={{width: "8px", height: "1px", background: "rgba(0,0,0,0.2)"}}></div>
-                                <div style={{width: "100%", height: "8px", background: "rgba(0,0,0,0.1)", margin: "2px 0"}}></div>
-                                <div style={{width: "8px", height: "1px", background: "rgba(0,0,0,0.2)"}}></div>
-                                <div style={{width: "8px", height: "1px", background: "rgba(0,0,0,0.2)"}}></div>
-                            </div>
-                        )}
+
+                        <ModeBody developer={developer} intentConfig={intentConfig} />
                     </div>
                 </div>
+            ) : (
+                // Original Layout for other modes
+                <div className="w-full h-full flex flex-col overflow-hidden select-none relative"
+                    style={{ 
+                        background: "var(--bg-card)", 
+                        border: `1px solid ${accent}20`, 
+                        borderRadius: "1.25rem", 
+                        boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px ${accent}10` 
+                    }}>
 
-                {/* Card Body — mode-specific */}
-                <div className="flex-1 p-4 flex flex-col gap-3 overflow-hidden">
-                    <ModeBody developer={developer} intentConfig={intentConfig} />
+                    {/* Card Header */}
+                    <div className="relative h-40 flex items-end p-4 shrink-0" style={{ background: headerGradient }}>
+                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold"
+                            style={{ background: `${accent}25`, color: accent, border: `1px solid ${accent}40`, backdropFilter: "blur(8px)" }}>
+                            {intentConfig.emoji} {intentConfig.label}
+                        </div>
+
+                        <div className="absolute top-3 right-3 px-2.5 py-1 text-xs font-black rounded-lg"
+                            style={{ background: "rgba(0,0,0,0.4)", color: accent, border: `1px solid ${accent}40`, backdropFilter: "blur(8px)" }}>
+                            {developer.compatibilityScore}% match
+                        </div>
+
+                        {/* Avatar + name */}
+                        <div className="flex items-end gap-3 z-10 w-full">
+                            <img
+                                src={developer.avatarUrl || `https://ui-avatars.com/api/?name=${developer.username}&background=111&color=fff`}
+                                alt={developer.username}
+                                style={{ width: 64, height: 64, borderRadius: "0.875rem", border: `2px solid ${accent}60`, flexShrink: 0 }}
+                            />
+                            <div className="min-w-0">
+                                <h2 className="text-base font-bold text-white truncate leading-tight">{developer.name || developer.username}</h2>
+                                <p className="text-xs truncate" style={{ color: `${accent}cc` }}>@{developer.username}</p>
+                                {developer.location && (
+                                    <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.5)" }}>📍 {developer.location}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card Body — mode-specific */}
+                    <div className="flex-1 p-4 flex flex-col gap-3 overflow-hidden">
+                        <ModeBody developer={developer} intentConfig={intentConfig} />
+                    </div>
                 </div>
-            </div>
+            )}
         </motion.div>
     );
 }
