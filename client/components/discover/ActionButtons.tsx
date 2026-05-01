@@ -7,9 +7,12 @@ interface ActionButtonsProps {
     onSuperLike: () => void;
     onLike: () => void;
     accentColor?: string;
+    likeLabel?: string;
 }
 
-export default function ActionButtons({ onPass, onSuperLike, onLike }: ActionButtonsProps) {
+export default function ActionButtons({ onPass, onSuperLike, onLike, accentColor = "#e8614a", likeLabel }: ActionButtonsProps) {
+    const glowColor = `${accentColor}40`;
+
     return (
         <div style={{
             display: "flex",

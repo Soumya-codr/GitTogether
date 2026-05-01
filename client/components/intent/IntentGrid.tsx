@@ -1,4 +1,5 @@
 "use client";
+import { INTENT_CONFIGS } from "@/lib/intentConfig";
 import IntentCard from "./IntentCard";
 
 const INTENTS = [
@@ -17,9 +18,18 @@ interface IntentGridProps {
 }
 
 export default function IntentGrid({ selected, loading, onSelect }: IntentGridProps) {
+    const intents = Object.keys(INTENT_CONFIGS);
+
     return (
-        <div className="intent-grid">
-            {INTENTS.map((intent, i) => (
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "1rem",
+            width: "100%",
+            maxWidth: 580,
+            margin: "0 auto",
+        }}>
+            {intents.map((id, i) => (
                 <IntentCard
                     key={intent.id}
                     id={intent.id}

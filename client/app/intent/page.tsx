@@ -1,27 +1,31 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 import IntentGrid from "@/components/intent/IntentGrid";
+import { INTENT_CONFIGS } from "@/lib/intentConfig";
 
 export default function IntentPage() {
     const router = useRouter();
     const [selected, setSelected] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
+    const selectedConfig = selected ? INTENT_CONFIGS[selected] : null;
+    const bgColor = selectedConfig?.accentColor ?? "#FF6B9A";
+
     async function handleSelect(id: string) {
         if (loading) return;
         setSelected(id);
         setLoading(true);
         localStorage.setItem("gt_intent", id);
-        try {
-            await api.patch(`/api/users/me`, { intentMode: id });
-        } catch { /* non-fatal */ }
-        finally {
-            setLoading(false);
-            router.push("/discover");
-        }
+        // Minimum 1.5s delay so the portal animation is clearly visible
+        const [, ] = await Promise.all([
+            api.patch(`/api/users/me`, { intentMode: id }).catch(() => {}),
+            new Promise(res => setTimeout(res, 1500)),
+        ]);
+        setLoading(false);
+        router.push("/discover");
     }
 
     return (

@@ -15,6 +15,7 @@ interface Developer {
     primaryStack: string[];
     compatibilityScore: number;
     intentMode: string;
+    repositories?: { repoName: string; stars: number; language: string | null; topics: string[] }[];
 }
 
 interface SwipeCardProps {
@@ -22,7 +23,7 @@ interface SwipeCardProps {
     onSwipe: (id: string, type: "like" | "pass" | "superlike") => void;
     isTop: boolean;
     stackIndex: number;
-    intentConfig?: IntentConfig;
+    intentConfig: IntentConfig;
 }
 
 const LANG_COLORS: Record<string, string> = {
@@ -38,6 +39,201 @@ function getScoreColor(score: number): string {
     return "#C026D3";
 }
 
+// Body-specific info section per mode
+function ModeBody({ developer, intentConfig }: { developer: Developer; intentConfig: IntentConfig }) {
+    const accent = intentConfig.accentColor;
+    const mode = intentConfig.id;
+    const repos = developer.repositories || [];
+
+    if (mode === "networking") {
+        const totalStars = repos.reduce((s, r) => s + r.stars, 0);
+        const stack      = (developer.primaryStack as string[]);
+
+        return (
+            <div className="mt-4 pt-4 border-t" style={{ borderColor: `${accent}20` }}>
+                <p className="text-xs font-bold mb-2 uppercase tracking-wide" style={{ color: "#888" }}>Professional Highlights</p>
+                <div className="flex gap-4 mb-4">
+                    <div>
+                        <p className="text-sm font-bold text-white">{repos.length}</p>
+                        <p className="text-xs" style={{ color: "#888" }}>Projects</p>
+                    </div>
+                    <div>
+                        <p className="text-sm font-bold text-white">{totalStars}</p>
+                        <p className="text-xs" style={{ color: "#888" }}>Stars</p>
+                    </div>
+                </div>
+                <p className="text-xs font-bold mb-2 uppercase tracking-wide" style={{ color: "#888" }}>Top Skills</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                    {stack.slice(0, 5).map(lang => (
+                        <span key={lang} style={{
+                            display: "flex", alignItems: "center", gap: "0.25rem",
+                            fontSize: "0.7rem", fontWeight: 500,
+                            padding: "0.2rem 0.6rem", borderRadius: "0.25rem",
+                            background: "rgba(255,255,255,0.05)",
+                            color: "#ccc",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                        }}>
+                            {lang}
+                        </span>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    if (mode === "collab") {
+        const repo = getFeaturedRepo(developer);
+        return (
+            <>
+                {repo && (
+                    <div className="p-3 rounded-xl" style={{ background: `${accent}10`, border: `1px solid ${accent}25` }}>
+                        <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: accent }}>🚀 Featured Project</p>
+                        <p className="text-sm font-bold text-white">{repo.repoName}</p>
+                        {repo.language && <p className="text-xs mt-1" style={{ color: "#999" }}>{repo.language} · ⭐ {repo.stars}</p>}
+                    </div>
+                )}
+                <div>
+                    <p className="text-xs mb-2 uppercase tracking-widest" style={{ color: "#666" }}>Builds with</p>
+                    <div className="flex flex-wrap gap-2">
+                        {(developer.primaryStack as string[]).slice(0, 4).map(lang => (
+                            <span key={lang} className="text-xs font-medium px-2.5 py-1 rounded-full"
+                                style={{ background: `${LANG_COLORS[lang] || accent}15`, color: LANG_COLORS[lang] || accent, border: `1px solid ${LANG_COLORS[lang] || accent}40` }}>
+                                {lang}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+                <div className="mt-auto">
+                    <span className="text-xs" style={{ color: "#666" }}>Repos: </span>
+                    <span className="text-xs font-bold" style={{ color: accent }}>{repos.length} public projects</span>
+                </div>
+            </>
+        );
+    }
+
+    if (mode === "hackathon") {
+        return (
+            <>
+                <div className="p-3 rounded-xl" style={{ background: `${accent}12`, border: `1px solid ${accent}30` }}>
+                    <p className="text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: accent }}>⚡ Battle Stats</p>
+                    <div className="flex gap-4">
+                        <div className="text-center">
+                            <p className="text-xl font-black" style={{ color: accent }}>{repos.length}</p>
+                            <p className="text-xs" style={{ color: "#888" }}>Projects</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-xl font-black" style={{ color: accent }}>{repos.reduce((s, r) => s + r.stars, 0)}</p>
+                            <p className="text-xs" style={{ color: "#888" }}>Stars</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-xl font-black" style={{ color: accent }}>{new Set(repos.map(r => r.language).filter(Boolean)).size}</p>
+                            <p className="text-xs" style={{ color: "#888" }}>Languages</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <p className="text-xs mb-2 uppercase tracking-widest" style={{ color: "#666" }}>Weapons of choice</p>
+                    <div className="flex flex-wrap gap-2">
+                        {(developer.primaryStack as string[]).slice(0, 5).map(lang => (
+                            <span key={lang} className="text-xs font-black px-2.5 py-1 rounded-full"
+                                style={{ background: `${LANG_COLORS[lang] || accent}20`, color: LANG_COLORS[lang] || accent, border: `1px solid ${LANG_COLORS[lang] || accent}50` }}>
+                                {lang}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    if (mode === "learning") {
+        const stack = developer.primaryStack as string[];
+        const teach = stack.slice(0, 2);
+        const learn = stack.slice(-2).filter(l => !teach.includes(l));
+        return (
+            <>
+                <div className="flex flex-col gap-2">
+                    <div className="p-2.5 rounded-xl" style={{ background: `${accent}12`, border: `1px solid ${accent}30` }}>
+                        <p className="text-xs font-bold mb-1.5" style={{ color: accent }}>🎓 Can Teach</p>
+                        <div className="flex flex-wrap gap-1.5">
+                            {teach.length > 0 ? teach.map(l => (
+                                <span key={l} className="text-xs font-medium px-2 py-0.5 rounded-full"
+                                    style={{ background: `${accent}20`, color: accent }}>
+                                    {l}
+                                </span>
+                            )) : <span className="text-xs" style={{ color: "#666" }}>Ask them!</span>}
+                        </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <p className="text-xs font-bold mb-1.5" style={{ color: "#a0a0a0" }}>📖 Currently Exploring</p>
+                        <div className="flex flex-wrap gap-1.5">
+                            {learn.length > 0 ? learn.map(l => (
+                                <span key={l} className="text-xs font-medium px-2 py-0.5 rounded-full"
+                                    style={{ background: "rgba(255,255,255,0.06)", color: "#ccc" }}>
+                                    {l}
+                                </span>
+                            )) : <span className="text-xs" style={{ color: "#666" }}>Open to everything!</span>}
+                        </div>
+                    </div>
+                </div>
+                {developer.bio && (
+                    <p className="text-xs leading-relaxed line-clamp-2 mt-auto" style={{ color: "#888" }}>{developer.bio}</p>
+                )}
+            </>
+        );
+    }
+
+    if (mode === "dating") {
+        const personality = getCoderPersonality(developer);
+        return (
+            <>
+                <div className="p-3 rounded-2xl text-center" style={{ background: `${accent}12`, border: `1px solid ${accent}30` }}>
+                    <p className="text-2xl mb-1">✨</p>
+                    <p className="text-sm font-bold" style={{ color: accent }}>Coder Personality</p>
+                    <p className="text-base font-black text-white mt-1">{personality}</p>
+                </div>
+                {developer.bio && (
+                    <p className="text-sm leading-relaxed line-clamp-2 text-center italic" style={{ color: "#a0a0a0" }}>
+                        "{developer.bio}"
+                    </p>
+                )}
+                <div className="mt-auto flex justify-center gap-2">
+                    {(developer.primaryStack as string[]).slice(0, 3).map(lang => (
+                        <span key={lang} className="text-xs font-medium px-2.5 py-1 rounded-full"
+                            style={{ background: `${LANG_COLORS[lang] || accent}15`, color: LANG_COLORS[lang] || accent }}>
+                            {lang}
+                        </span>
+                    ))}
+                </div>
+            </>
+        );
+    }
+
+    // Casual (default)
+    return (
+        <>
+            {developer.bio && (
+                <p className="text-sm leading-relaxed line-clamp-2" style={{ color: "#a0a0a0" }}>{developer.bio}</p>
+            )}
+            <div>
+                <p className="text-xs mb-2 uppercase tracking-widest" style={{ color: "#666" }}>Vibes with</p>
+                <div className="flex flex-wrap gap-2">
+                    {(developer.primaryStack as string[]).map(lang => (
+                        <span key={lang} className="text-xs font-medium px-2.5 py-1 rounded-full"
+                            style={{ background: `${LANG_COLORS[lang] || accent}20`, color: LANG_COLORS[lang] || accent, border: `1px solid ${LANG_COLORS[lang] || accent}40` }}>
+                            {lang}
+                        </span>
+                    ))}
+                </div>
+            </div>
+            <div className="mt-auto flex items-center gap-2">
+                <span className="text-lg">🎮</span>
+                <span className="text-xs" style={{ color: "#666" }}>{repos.length} repos · {repos.reduce((s, r) => s + r.stars, 0)} stars</span>
+            </div>
+        </>
+    );
+}
+
 export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig }: SwipeCardProps) {
     const likeLabel = intentConfig?.likeLabel || "CONNECT";
     const x = useMotionValue(0);
@@ -45,6 +241,8 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
     const likeOpacity = useTransform(x, [30, 110], [0, 1]);
     const passOpacity = useTransform(x, [-110, -30], [1, 0]);
     const cardRef = useRef<HTMLDivElement>(null);
+    const accent = intentConfig.accentColor;
+    const headerGradient = HEADER_GRADIENTS[intentConfig.id] || HEADER_GRADIENTS.casual;
 
     async function handleDragEnd(_: unknown, info: { offset: { x: number } }) {
         const threshold = 110;
@@ -64,7 +262,6 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
     return (
         <motion.div
             ref={cardRef}
-            className="dev-card"
             style={{
                 x, rotate,
                 position: "absolute",
@@ -182,6 +379,15 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                         </div>
                     )}
                 </div>
+            ) : (
+                // Original Layout for other modes
+                <div className="w-full h-full flex flex-col overflow-hidden select-none relative"
+                    style={{ 
+                        background: "var(--bg-card)", 
+                        border: `1px solid ${accent}20`, 
+                        borderRadius: "1.25rem", 
+                        boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px ${accent}10` 
+                    }}>
 
                 {/* Card body */}
                 <div style={{

@@ -17,13 +17,13 @@ export const INTENT_CONFIGS: Record<string, IntentConfig> = {
         id: "networking",
         emoji: "💼",
         label: "Professional Networking",
-        tagline: "Find developers who can grow your career",
+        tagline: "Build your professional dev network",
         accentColor: "#60a5fa",   // blue
         accentBg: "rgba(96,165,250,0.1)",
         cardFocus: "open_to_work",
-        emptyMsg: "No more professionals in your area right now.",
+        emptyMsg: "No more developers to connect with right now.",
         likeLabel: "CONNECT",
-        actionHint: "Swipe right to connect, left to skip",
+        actionHint: "Connect with developers who level up your career",
     },
     collab: {
         id: "collab",

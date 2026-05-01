@@ -8,11 +8,14 @@ import Navbar from "@/components/shared/Navbar";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import EmptyState from "@/components/shared/EmptyState";
 import MatchListItem from "@/components/matches/MatchListItem";
+import PendingLikeItem from "@/components/matches/PendingLikeItem";
 
 export default function MatchesPage() {
     const { status } = useSession();
     const router = useRouter();
+    const [tab, setTab] = useState<Tab>("matches");
     const [matches, setMatches] = useState<any[]>([]);
+    const [pending, setPending] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"mutual" | "pending">("mutual");
 
@@ -27,6 +30,19 @@ export default function MatchesPage() {
     }, [status]);
 
     if (loading) return <LoadingSpinner />;
+
+    const TAB_STYLES = (active: boolean, accent: string) => ({
+        padding: "0.55rem 1.25rem",
+        borderRadius: "0.65rem",
+        fontWeight: 700,
+        fontSize: "0.85rem",
+        cursor: "pointer",
+        border: "none",
+        background: active ? `${accent}18` : "transparent",
+        color: active ? accent : "#666",
+        borderBottom: active ? `2px solid ${accent}` : "2px solid transparent",
+        transition: "all 0.2s ease",
+    });
 
     return (
         <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg-base)" }}>

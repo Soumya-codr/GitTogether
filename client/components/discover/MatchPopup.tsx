@@ -7,7 +7,18 @@ interface MatchPopupProps {
     matchedUser?: { name?: string | null; avatarUrl?: string | null };
 }
 
-export default function MatchPopup({ visible }: MatchPopupProps) {
+const MATCH_CONFIG: Record<string, { emoji: string; title: string; subtitle: string; color: string }> = {
+    networking: { emoji: "🤝", title: "Connection Made!", subtitle: "A new professional connection awaits", color: "#60a5fa" },
+    collab:     { emoji: "🛸", title: "Team Formed!", subtitle: "Time to ship something amazing together", color: "#a78bfa" },
+    hackathon:  { emoji: "🏆", title: "Teammate Found!", subtitle: "Go build something legendary", color: "#fbbf24" },
+    learning:   { emoji: "📚", title: "Study Buddy Found!", subtitle: "Time to level up together", color: "#34d399" },
+    dating:     { emoji: "💝", title: "It's a GitTogether!", subtitle: "You both write beautiful code ❤️", color: "#f472b6" },
+    casual:     { emoji: "🎮", title: "Vibe Match!", subtitle: "You're both weird in the same way!", color: "#e879f9" },
+};
+
+export default function MatchPopup({ visible, intentMode = "casual" }: MatchPopupProps) {
+    const cfg = MATCH_CONFIG[intentMode] || MATCH_CONFIG.casual;
+
     return (
         <AnimatePresence>
             {visible && (

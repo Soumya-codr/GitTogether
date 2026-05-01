@@ -22,7 +22,26 @@ export default function IntentCard({ id, emoji, label, description, selected, di
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect(id)}
             disabled={disabled}
-            className={`intent-card ${selected ? "selected" : ""}`}
+            style={{
+                position: "relative",
+                overflow: "hidden",
+                background: selected
+                    ? `linear-gradient(135deg, ${accent}20, ${accent}08)`
+                    : "rgba(255,255,255,0.03)",
+                border: `1px solid ${selected ? accent : "rgba(255,255,255,0.07)"}`,
+                borderRadius: "1.25rem",
+                padding: "1.75rem 1rem 1.5rem",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "0.6rem",
+                cursor: disabled ? "not-allowed" : "pointer",
+                transition: "all 0.25s ease",
+                boxShadow: selected
+                    ? `0 0 30px ${glowColor}, 0 8px 32px rgba(0,0,0,0.4)`
+                    : "0 4px 20px rgba(0,0,0,0.3)",
+                textAlign: "center",
+            }}
         >
             <span className="ic-icon">{emoji}</span>
             <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>

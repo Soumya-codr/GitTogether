@@ -11,6 +11,7 @@ import { SwipeCard } from "@/components/discover/SwipeCard";
 import ActionButtons from "@/components/discover/ActionButtons";
 import MatchPopup from "@/components/discover/MatchPopup";
 import IntentBanner from "@/components/discover/IntentBanner";
+import NetworkingFeed from "@/components/discover/NetworkingFeed";
 import { INTENT_CONFIGS, DEFAULT_INTENT } from "@/lib/intentConfig";
 
 export default function DiscoverPage() {
@@ -47,7 +48,7 @@ export default function DiscoverPage() {
             const res = await api.post(`/api/swipes`, { targetId, swipeType });
             if (res.data.matched) {
                 setMatchVisible(true);
-                setTimeout(() => setMatchVisible(false), 4000);
+                setTimeout(() => setMatchVisible(false), 5500);
             }
         } catch {}
     };
@@ -60,7 +61,7 @@ export default function DiscoverPage() {
     return (
         <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg-base)" }}>
             <Navbar />
-            <MatchPopup visible={matchVisible} />
+            <MatchPopup visible={matchVisible} intentMode={intentMode} />
 
             <main style={{
                 flex: 1,
@@ -82,6 +83,8 @@ export default function DiscoverPage() {
                         actionLabel="Refresh"
                         onAction={fetchDeck}
                     />
+                ) : intentMode === "networking" ? (
+                    <NetworkingFeed deck={deck} onConnect={handleSwipe} intentConfig={intentConfig} />
                 ) : (
                     <>
                         {/* Card deck */}
@@ -109,6 +112,7 @@ export default function DiscoverPage() {
                             onSuperLike={() => handleSwipe(current.id, "superlike")}
                             onLike={() => handleSwipe(current.id, "like")}
                             accentColor={intentConfig.accentColor}
+                            likeLabel={intentConfig.likeLabel}
                         />
 
                         {/* Queue hint */}
