@@ -35,107 +35,64 @@ export default function IntentPage() {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            padding: "2.5rem 1.5rem",
-            background: `radial-gradient(ellipse at 50% -10%, ${bgColor}18 0%, transparent 65%), var(--bg-main)`,
-            transition: "background 0.5s ease",
+            padding: "3rem 1.5rem",
+            background: "var(--bg-base)",
             position: "relative",
             overflow: "hidden",
         }}>
-            {/* Animated background orb that follows selected mode */}
-            <AnimatePresence>
-                {selectedConfig && (
-                    <motion.div
-                        key={selected}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
-                        style={{
-                            position: "absolute",
-                            top: "5%",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            width: 400,
-                            height: 200,
-                            borderRadius: "50%",
-                            background: `radial-gradient(ellipse, ${selectedConfig.accentColor}25 0%, transparent 70%)`,
-                            pointerEvents: "none",
-                            filter: "blur(40px)",
-                            zIndex: 0,
-                        }}
-                    />
-                )}
-            </AnimatePresence>
+            {/* Background orbs */}
+            <div className="orb orb-1" />
+            <div className="orb orb-2" />
 
-            {/* Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45 }}
-                style={{ textAlign: "center", marginBottom: "2.5rem", position: "relative", zIndex: 1 }}
-            >
+            <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 560, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                {/* Header */}
                 <motion.div
-                    animate={{ color: selectedConfig?.accentColor ?? "var(--accent-pink)" }}
-                    transition={{ duration: 0.4 }}
-                    style={{ fontSize: "2.6rem", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "0.75rem" }}
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45 }}
+                    style={{ textAlign: "center", marginBottom: "2.5rem" }}
                 >
-                    Choose Your World
-                </motion.div>
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.95rem", fontWeight: 500 }}>
-                    Each mode is a different experience built just for you
-                </p>
-
-                {/* Active mode tagline */}
-                <AnimatePresence mode="wait">
-                    {selectedConfig && (
-                        <motion.p
-                            key={selected}
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -8 }}
-                            style={{
-                                marginTop: "0.75rem",
-                                fontSize: "0.85rem",
-                                fontWeight: 600,
-                                color: selectedConfig.accentColor,
-                            }}
-                        >
-                            {selectedConfig.emoji} {selectedConfig.tagline}
-                        </motion.p>
-                    )}
-                </AnimatePresence>
-            </motion.div>
-
-            <IntentGrid selected={selected} loading={loading} onSelect={handleSelect} />
-
-            {/* Loading overlay */}
-            {loading && selected && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    style={{
-                        position: "fixed",
-                        inset: 0,
-                        background: `radial-gradient(ellipse at center, ${INTENT_CONFIGS[selected]?.accentColor}20 0%, rgba(0,0,0,0.85) 100%)`,
-                        display: "flex",
-                        flexDirection: "column",
+                    <div style={{
+                        display: "inline-flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        gap: "1rem",
-                        zIndex: 100,
-                    }}
-                >
-                    <motion.div
-                        animate={{ scale: [1, 1.25, 0.95, 1.2, 1], rotate: [0, 12, -12, 8, 0] }}
-                        transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
-                        style={{ fontSize: "5rem" }}
-                    >
-                        {INTENT_CONFIGS[selected]?.emoji}
-                    </motion.div>
-                    <p style={{ color: INTENT_CONFIGS[selected]?.accentColor, fontWeight: 700, fontSize: "1.1rem" }}>
-                        Entering {INTENT_CONFIGS[selected]?.label}...
+                        gap: "0.4rem",
+                        padding: "0.3rem 0.9rem",
+                        borderRadius: "var(--radius-full)",
+                        background: "rgba(192, 38, 211, 0.08)",
+                        border: "1px solid var(--border-accent)",
+                        color: "var(--accent-light)",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase" as const,
+                        marginBottom: "1.1rem",
+                    }}>
+                        Step 1 of 1
+                    </div>
+                    <h1 style={{
+                        fontSize: "clamp(1.9rem, 5vw, 2.6rem)",
+                        fontWeight: 900,
+                        color: "var(--text-primary)",
+                        letterSpacing: "-0.03em",
+                        marginBottom: "0.6rem",
+                        lineHeight: 1.1,
+                    }}>
+                        Choose your{" "}
+                        <span style={{
+                            background: "linear-gradient(135deg, var(--accent-light), var(--accent-alt))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                        }}>
+                            world
+                        </span>
+                    </h1>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", fontWeight: 500, lineHeight: 1.55 }}>
+                        Each mode shapes who you meet and how you connect.
                     </p>
                 </motion.div>
-            )}
+
+                <IntentGrid selected={selected} loading={loading} onSelect={handleSelect} />
+            </div>
         </main>
     );
 }

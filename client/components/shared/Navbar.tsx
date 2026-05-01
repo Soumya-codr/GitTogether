@@ -2,10 +2,12 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import { Compass, Heart, MessageSquare, User, LogOut, GitBranch } from "lucide-react";
 
 const LINKS = [
-    { href: "/discover", label: "Discover", icon: "⚡" },
-    { href: "/matches", label: "Matches", icon: "💝" },
+    { href: "/discover",  label: "Discover", icon: Compass },
+    { href: "/matches",   label: "Matches",  icon: Heart },
+    { href: "/profile",   label: "Profile",  icon: User },
 ];
 
 export default function Navbar() {
@@ -13,79 +15,104 @@ export default function Navbar() {
     const pathname = usePathname();
 
     return (
-        <nav className="gt-nav" style={{
-            background: "var(--bg-nav)",
-            borderBottom: "1px solid var(--card-border)",
-        }}>
+        <nav className="gt-nav">
             {/* Logo */}
             <Link href="/discover" style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none" }}>
-                <span style={{ fontSize: "1.2rem", filter: "drop-shadow(0 2px 4px rgba(255,107,154,0.3))" }}>🔗</span>
-                <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--accent-pink)", letterSpacing: "-0.02em" }}>GitTogether</span>
+                <div style={{
+                    width: 30, height: 30,
+                    borderRadius: "8px",
+                    background: "linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "0 0 14px var(--accent-glow)",
+                    flexShrink: 0,
+                }}>
+                    <GitBranch size={16} color="white" />
+                </div>
+                <span style={{
+                    fontSize: "1.05rem",
+                    fontWeight: 800,
+                    background: "linear-gradient(90deg, var(--accent-light), var(--accent-alt))",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    letterSpacing: "-0.02em",
+                }}>
+                    GitTogether
+                </span>
             </Link>
 
-            {/* Nav links */}
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-                {LINKS.map((l) => (
-                    <Link key={l.href} href={l.href} style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        padding: "0.5rem 1rem",
-                        borderRadius: "0.75rem",
-                        textDecoration: "none",
-                        fontSize: "0.9rem",
-                        fontWeight: 600,
-                        background: pathname === l.href ? "rgba(255,107,154,0.08)" : "transparent",
-                        color: pathname === l.href ? "var(--accent-pink)" : "var(--text-secondary)",
-                        transition: "all 0.2s ease",
-                        boxShadow: pathname === l.href ? "0 0 15px rgba(255,107,154,0.1)" : "none",
-                    }}>
-                        <span style={{ opacity: pathname === l.href ? 1 : 0.6 }}>{l.icon}</span>
-                        <span>{l.label}</span>
-                    </Link>
-                ))}
+            {/* Nav links (desktop) */}
+            <div style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
+                {LINKS.map((l) => {
+                    const Icon = l.icon;
+                    const active = pathname === l.href;
+                    return (
+                        <Link key={l.href} href={l.href} style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.45rem",
+                            padding: "0.45rem 0.9rem",
+                            borderRadius: "var(--radius-md)",
+                            textDecoration: "none",
+                            fontSize: "0.875rem",
+                            fontWeight: active ? 700 : 500,
+                            background: active ? "rgba(192, 38, 211, 0.10)" : "transparent",
+                            color: active ? "var(--accent-light)" : "var(--text-secondary)",
+                            border: active ? "1px solid var(--border-accent)" : "1px solid transparent",
+                            transition: "all 0.18s ease",
+                            boxShadow: active ? "0 0 14px var(--accent-glow)" : "none",
+                        }}>
+                            <Icon size={15} />
+                            <span className="hidden sm:inline">{l.label}</span>
+                        </Link>
+                    );
+                })}
             </div>
 
-            {/* Avatar + sign out */}
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            {/* Right: avatar + sign out */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 {session?.user?.image && (
                     <Link href="/profile" title="View Profile">
-                        <img src={session.user.image} alt=""
-                            style={{
-                                width: 36, height: 36,
-                                borderRadius: "0.75rem",
-                                border: "1px solid var(--card-border)",
-                                cursor: "pointer",
-                                transition: "all 0.2s ease",
-                                boxShadow: "var(--soft-shadow)",
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = "var(--accent-pink)";
-                                e.currentTarget.style.boxShadow = "0 0 10px var(--accent-glow)";
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = "var(--card-border)";
-                                e.currentTarget.style.boxShadow = "var(--soft-shadow)";
-                            }}
-                        />
+                        <div style={{ position: "relative" }}>
+                            <img
+                                src={session.user.image}
+                                alt=""
+                                style={{
+                                    width: 34, height: 34,
+                                    borderRadius: "50%",
+                                    border: "2px solid var(--border-accent)",
+                                    cursor: "pointer",
+                                    boxShadow: "0 0 10px var(--accent-glow)",
+                                    display: "block",
+                                }}
+                            />
+                            <span style={{
+                                position: "absolute", bottom: 0, right: 0,
+                                width: 9, height: 9,
+                                background: "#22C55E",
+                                borderRadius: "50%",
+                                border: "1.5px solid var(--bg-base)",
+                            }} />
+                        </div>
                     </Link>
                 )}
                 <button
                     onClick={() => { localStorage.clear(); sessionStorage.clear(); signOut({ callbackUrl: "/" }); }}
-                    style={{ 
-                        background: "none", 
-                        border: "none", 
-                        color: "var(--text-secondary)", 
-                        fontSize: "0.85rem", 
-                        fontWeight: 500,
+                    title="Sign out"
+                    style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted)",
                         cursor: "pointer",
-                        opacity: 0.7,
-                        transition: "opacity 0.2s",
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "0.3rem",
+                        borderRadius: "var(--radius-sm)",
+                        transition: "color 0.18s",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
                 >
-                    Sign out
+                    <LogOut size={16} />
                 </button>
             </div>
         </nav>

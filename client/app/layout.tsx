@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-
-const inter = Inter({ subsets: ["latin"] });
+import AuthSync from "@/components/shared/AuthSync";
 
 export const metadata: Metadata = {
   title: "GitTogether — Connect Through Code",
   description: "GitTogether connects developers based on GitHub profiles. Network, collaborate, and vibe through code.",
 };
 
-import AuthSync from "@/components/shared/AuthSync";
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-[#0d0f14] text-gray-100 min-h-screen`}>
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+      </head>
+      <body>
         <Providers>
           <AuthSync>{children}</AuthSync>
         </Providers>

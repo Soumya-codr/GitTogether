@@ -2,15 +2,13 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import api from "@/lib/api";
 import Navbar from "@/components/shared/Navbar";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import EmptyState from "@/components/shared/EmptyState";
 import MatchListItem from "@/components/matches/MatchListItem";
 import PendingLikeItem from "@/components/matches/PendingLikeItem";
-
-type Tab = "matches" | "pending";
 
 export default function MatchesPage() {
     const { status } = useSession();
@@ -19,20 +17,15 @@ export default function MatchesPage() {
     const [matches, setMatches] = useState<any[]>([]);
     const [pending, setPending] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<"mutual" | "pending">("mutual");
 
     useEffect(() => { if (status === "unauthenticated") router.replace("/"); }, [status, router]);
 
     useEffect(() => {
         if (status !== "authenticated") return;
-        Promise.all([
-            api.get(`/api/matches`),
-            api.get(`/api/swipes/pending`),
-        ])
-            .then(([matchRes, pendingRes]) => {
-                setMatches(matchRes.data);
-                setPending(pendingRes.data);
-            })
-            .catch(() => { })
+        api.get(`/api/matches`)
+            .then((r) => setMatches(r.data))
+            .catch(() => {})
             .finally(() => setLoading(false));
     }, [status]);
 
@@ -52,119 +45,104 @@ export default function MatchesPage() {
     });
 
     return (
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg-base)" }}>
             <Navbar />
-            <main style={{ maxWidth: 640, margin: "0 auto", width: "100%", padding: "2rem 1rem" }}>
 
+            <main style={{ flex: 1, maxWidth: 720, margin: "0 auto", width: "100%", padding: "2rem 1.25rem" }}>
                 {/* Header */}
-                <div style={{ marginBottom: "1.5rem" }}>
-                    <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#e8614a", marginBottom: "0.2rem" }}>
-                        Your GitMatches
-                    </h1>
-                    <p style={{ fontSize: "0.85rem", color: "#555" }}>
-                        {matches.length} mutual · {pending.length} pending
-                    </p>
-                </div>
-
-                {/* Tabs */}
-                <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "0" }}>
-                    <button style={TAB_STYLES(tab === "matches", "#e8614a")} onClick={() => setTab("matches")}>
-                        🔗 Matches
+                <motion.div
+                    initial={{ opacity: 0, y: -12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ marginBottom: "1.75rem" }}
+                >
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", marginBottom: "0.4rem" }}>
+                        <h1 style={{
+                            fontSize: "1.75rem",
+                            fontWeight: 900,
+                            letterSpacing: "-0.03em",
+                            background: "linear-gradient(135deg, var(--text-primary), var(--accent-light))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                        }}>
+                            Your GitMatches
+                        </h1>
                         {matches.length > 0 && (
-                            <span style={{ marginLeft: "0.4rem", background: "#e8614a", color: "#fff", borderRadius: "999px", padding: "0.05rem 0.45rem", fontSize: "0.7rem" }}>
+                            <span style={{
+                                padding: "0.15rem 0.6rem",
+                                borderRadius: "var(--radius-full)",
+                                background: "rgba(192, 38, 211, 0.12)",
+                                border: "1px solid var(--border-accent)",
+                                color: "var(--accent-light)",
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                            }}>
                                 {matches.length}
                             </span>
                         )}
-                    </button>
-                    <button style={TAB_STYLES(tab === "pending", "#fbbf24")} onClick={() => setTab("pending")}>
-                        ⏳ Pending Likes
-                        {pending.length > 0 && (
-                            <span style={{ marginLeft: "0.4rem", background: "#fbbf24", color: "#000", borderRadius: "999px", padding: "0.05rem 0.45rem", fontSize: "0.7rem", fontWeight: 800 }}>
-                                {pending.length}
-                            </span>
-                        )}
-                    </button>
+                    </div>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
+                        {matches.length === 0 ? "No connections yet — go discover!" : `${matches.length} mutual connection${matches.length !== 1 ? "s" : ""} ready to chat`}
+                    </p>
+                </motion.div>
+
+                {/* Tabs */}
+                <div style={{
+                    display: "flex",
+                    gap: "0.25rem",
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "var(--radius-lg)",
+                    padding: "0.3rem",
+                    marginBottom: "1.25rem",
+                    width: "fit-content",
+                }}>
+                    {(["mutual", "pending"] as const).map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            style={{
+                                padding: "0.45rem 1.1rem",
+                                borderRadius: "var(--radius-md)",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "0.825rem",
+                                fontWeight: 700,
+                                fontFamily: "inherit",
+                                transition: "all 0.2s ease",
+                                background: activeTab === tab ? "linear-gradient(135deg, var(--accent), var(--accent-alt))" : "transparent",
+                                color: activeTab === tab ? "white" : "var(--text-secondary)",
+                                boxShadow: activeTab === tab ? "0 2px 12px var(--accent-glow)" : "none",
+                            }}
+                        >
+                            {tab === "mutual" ? "Mutual Matches" : "Pending Likes"}
+                        </button>
+                    ))}
                 </div>
 
-                {/* Tab Content */}
-                <AnimatePresence mode="wait">
-                    {tab === "matches" && (
-                        <motion.div
-                            key="matches"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            {matches.length === 0 ? (
-                                <EmptyState
-                                    emoji="🔍"
-                                    title="No matches yet"
-                                    subtitle="Go discover some developers!"
-                                    actionLabel="Start Discovering"
-                                    actionHref="/discover"
-                                />
-                            ) : (
-                                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                                    {matches.map((m, i) => (
-                                        <MatchListItem
-                                            key={m.matchId ?? m.id}
-                                            matchId={m.matchId ?? m.id}
-                                            partner={m.partner}
-                                            lastMessage={m.lastMessage}
-                                            compatibilityScore={m.compatibilityScore}
-                                            index={i}
-                                            onUnmatch={() => {
-                                                setMatches(prev => prev.filter(item => (item.matchId ?? item.id) !== (m.matchId ?? m.id)));
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-
-                    {tab === "pending" && (
-                        <motion.div
-                            key="pending"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            {pending.length === 0 ? (
-                                <EmptyState
-                                    emoji="💛"
-                                    title="No pending likes"
-                                    subtitle="Go like some developers to see them here!"
-                                    actionLabel="Start Swiping"
-                                    actionHref="/discover"
-                                />
-                            ) : (
-                                <>
-                                    <p style={{ fontSize: "0.75rem", color: "#555", marginBottom: "1rem" }}>
-                                        These people are waiting for a match. Undo a like to send them back to your queue.
-                                    </p>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-                                        {pending.map((p, i) => (
-                                            <PendingLikeItem
-                                                key={p.targetId}
-                                                targetId={p.targetId}
-                                                swipeType={p.swipeType}
-                                                likedAt={p.likedAt}
-                                                user={p.user}
-                                                index={i}
-                                                onUndo={(id) => {
-                                                    setPending(prev => prev.filter(item => item.targetId !== id));
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                {/* Match list */}
+                {matches.length === 0 ? (
+                    <EmptyState
+                        emoji="🔭"
+                        title="No matches yet"
+                        subtitle="Start swiping on the Discover page to find your first match."
+                        actionLabel="Start Discovering"
+                        actionHref="/discover"
+                    />
+                ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                        {matches.map((m, i) => (
+                            <MatchListItem
+                                key={m.matchId}
+                                matchId={m.matchId}
+                                partner={m.partner}
+                                lastMessage={m.lastMessage}
+                                compatibilityScore={m.compatibilityScore}
+                                index={i}
+                                onUnmatch={() => setMatches(prev => prev.filter(item => item.matchId !== m.matchId))}
+                            />
+                        ))}
+                    </div>
+                )}
             </main>
         </div>
     );

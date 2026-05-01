@@ -11,86 +11,129 @@ interface MatchListItemProps {
     onUnmatch?: () => void;
 }
 
-export default function MatchListItem({ matchId, partner, lastMessage, compatibilityScore, index, onUnmatch }: MatchListItemProps) {
-    const handleUnmatch = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (!confirm(`Are you sure you want to unmatch with ${partner.name || partner.username}?`)) return;
+function getScoreColor(score: number): string {
+    if (score >= 90) return "#22C55E";
+    if (score >= 70) return "#F59E0B";
+    return "#C026D3";
+}
 
-        try {
-            const api = (await import("@/lib/api")).default;
-            await api.delete(`/api/matches/${matchId}`);
-            onUnmatch?.();
-        } catch (err) {
-            console.error("Failed to unmatch:", err);
-            alert("Could not unmatch. Please try again.");
-        }
-    };
+export default function MatchListItem({ matchId, partner, lastMessage, compatibilityScore, index }: MatchListItemProps) {
+    const scoreColor = getScoreColor(compatibilityScore);
+    const roundedScore = Math.round(compatibilityScore);
+
     return (
         <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+            transition={{ delay: index * 0.05, duration: 0.3 }}
         >
-            <Link href={`/chat/${matchId}`} style={{ textDecoration: "none" }}>
+            <Link href={`/chat/${matchId}`} style={{ textDecoration: "none", display: "block" }}>
                 <div
-                    className="gt-card"
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "1.25rem",
-                        padding: "1.25rem",
+                        gap: "1rem",
+                        padding: "0.9rem 1.1rem",
+                        borderRadius: "var(--radius-xl)",
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border)",
                         cursor: "pointer",
                         transition: "all 0.2s ease",
+                        position: "relative",
+                        overflow: "hidden",
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = "var(--border-accent)";
+                        e.currentTarget.style.background = "var(--bg-elevated)";
+                        e.currentTarget.style.transform = "translateX(4px)";
+                        e.currentTarget.style.boxShadow = "var(--glow-sm)";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = "var(--border)";
+                        e.currentTarget.style.background = "var(--bg-surface)";
+                        e.currentTarget.style.transform = "translateX(0)";
+                        e.currentTarget.style.boxShadow = "none";
                     }}
                 >
-                    <img
-                        src={partner.avatarUrl || `https://ui-avatars.com/api/?name=${partner.username}\u0026background=242424\u0026color=FF6B9A`}
-                        alt={partner.username}
-                        style={{ 
-                            width: 52, height: 52, 
-                            borderRadius: "0.85rem", 
-                            border: "1px solid var(--card-border)", 
-                            flexShrink: 0,
-                            boxShadow: "0 4px 10px rgba(0,0,0,0.15)"
-                        }}
-                    />
+                    {/* Left accent bar */}
+                    <div style={{
+                        position: "absolute", left: 0, top: "20%", bottom: "20%",
+                        width: 2,
+                        borderRadius: "0 2px 2px 0",
+                        background: `linear-gradient(to bottom, ${scoreColor}, transparent)`,
+                        opacity: 0.8,
+                    }} />
+
+                    {/* Avatar with online dot */}
+                    <div style={{ position: "relative", flexShrink: 0 }}>
+                        <img
+                            src={partner.avatarUrl || `https://ui-avatars.com/api/?name=${partner.username}&background=161620&color=E879F9&size=80&bold=true`}
+                            alt={partner.username}
+                            style={{
+                                width: 50, height: 50,
+                                borderRadius: "50%",
+                                border: `2px solid ${scoreColor}40`,
+                                display: "block",
+                                objectFit: "cover",
+                            }}
+                        />
+                        <span style={{
+                            position: "absolute", bottom: 1, right: 1,
+                            width: 11, height: 11,
+                            background: "#22C55E",
+                            borderRadius: "50%",
+                            border: "2px solid var(--bg-surface)",
+                        }} />
+                    </div>
+
+                    {/* Name + message */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem", marginBottom: "0.25rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{
+                            fontWeight: 700,
+                            color: "var(--text-primary)",
+                            fontSize: "0.925rem",
+                            marginBottom: "0.2rem",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                        }}>
                             {partner.name || partner.username}
                         </p>
-                        <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", opacity: 0.7, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {lastMessage ? lastMessage.messageText : "Double tap to say hello!"}
+                        <p style={{
+                            fontSize: "0.8rem",
+                            color: "var(--text-secondary)",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                        }}>
+                            {lastMessage ? lastMessage.messageText : "Say hello! 👋"}
                         </p>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                        <div style={{ textAlign: "right", flexShrink: 0 }}>
-                            <p style={{ fontWeight: 900, color: "var(--accent-pink)", fontSize: "1rem" }}>{Math.round(compatibilityScore)}%</p>
-                            <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", opacity: 0.5, letterSpacing: "0.05em" }}>match</p>
-                        </div>
-                        
-                        <motion.button
-                            onClick={handleUnmatch}
-                            whileHover={{ scale: 1.1, backgroundColor: "rgba(239, 68, 68, 0.15)" }}
-                            whileTap={{ scale: 0.9 }}
-                            style={{
-                                background: "rgba(255, 255, 255, 0.05)",
-                                border: "1px solid rgba(239, 68, 68, 0.2)",
-                                borderRadius: "0.6rem",
-                                padding: "0.6rem",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                transition: "all 0.2s ease"
-                            }}
-                            title="Unmatch"
-                        >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgb(239, 68, 68)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6" />
-                            </svg>
-                        </motion.button>
+
+                    {/* Score */}
+                    <div style={{
+                        flexShrink: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
+                        gap: "0.2rem",
+                    }}>
+                        <span style={{
+                            fontSize: "0.875rem",
+                            fontWeight: 800,
+                            color: scoreColor,
+                        }}>
+                            {roundedScore}%
+                        </span>
+                        <span style={{
+                            fontSize: "0.65rem",
+                            fontWeight: 700,
+                            color: "var(--text-muted)",
+                            textTransform: "uppercase" as const,
+                            letterSpacing: "0.05em",
+                        }}>
+                            match
+                        </span>
                     </div>
                 </div>
             </Link>

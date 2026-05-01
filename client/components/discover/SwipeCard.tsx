@@ -2,7 +2,8 @@
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { useRef } from "react";
-import { IntentConfig } from "@/lib/intentConfig";
+import { MapPin, Heart, X } from "lucide-react";
+import type { IntentConfig } from "@/lib/intentConfig";
 
 interface Developer {
     id: string;
@@ -26,40 +27,17 @@ interface SwipeCardProps {
 }
 
 const LANG_COLORS: Record<string, string> = {
-    JavaScript: "#f7df1e", TypeScript: "#3178c6", Python: "#3572a5",
-    Go: "#00add8", Rust: "#dea584", Java: "#b07219", "C++": "#f34b7d",
-    Ruby: "#701516", Swift: "#fa7343", Kotlin: "#a97bff", CSS: "#563d7c",
-    HTML: "#e34c26", Shell: "#89e051", Dart: "#00B4AB", PHP: "#777bb4",
+    JavaScript: "#F7DF1E", TypeScript: "#3178C6", Python: "#3572A5",
+    Go: "#00ADD8", Rust: "#DEA584", Java: "#B07219", "C++": "#F34B7D",
+    Ruby: "#701516", Swift: "#FA7343", Kotlin: "#A97BFF",
+    CSS: "#563D7C", HTML: "#E34C26", PHP: "#777BB4",
 };
 
-// Deterministic "personality" from GitHub stats
-function getCoderPersonality(dev: Developer): string {
-    const repos = dev.repositories || [];
-    const totalStars = repos.reduce((s, r) => s + r.stars, 0);
-    const langCount = new Set(repos.map(r => r.language).filter(Boolean)).size;
-    if (totalStars > 100) return "⭐ Open Source Legend";
-    if (langCount > 5) return "🌐 Polyglot Hacker";
-    if (repos.length > 20) return "🏃 Prolific Builder";
-    if (repos.some(r => (r.topics as string[]).includes("machine-learning"))) return "🤖 AI Enthusiast";
-    if (dev.bio?.toLowerCase().includes("student")) return "🎓 Student Developer";
-    return "🛠️ Craftsman Coder";
+function getScoreColor(score: number): string {
+    if (score >= 90) return "#22C55E";
+    if (score >= 70) return "#F59E0B";
+    return "#C026D3";
 }
-
-// Best repo to feature for collab mode
-function getFeaturedRepo(dev: Developer) {
-    const repos = dev.repositories || [];
-    return repos.sort((a, b) => b.stars - a.stars)[0] || null;
-}
-
-// Card header gradient per mode
-const HEADER_GRADIENTS: Record<string, string> = {
-    networking: "linear-gradient(135deg, rgba(37,99,235,0.7), rgba(17,50,130,0.8))",
-    collab:     "linear-gradient(135deg, rgba(109,40,217,0.7), rgba(60,20,120,0.8))",
-    hackathon:  "linear-gradient(135deg, rgba(217,119,6,0.7), rgba(120,53,15,0.8))",
-    learning:   "linear-gradient(135deg, rgba(5,150,105,0.7), rgba(6,78,59,0.8))",
-    dating:     "linear-gradient(135deg, rgba(219,39,119,0.7), rgba(131,24,67,0.8))",
-    casual:     "linear-gradient(135deg, rgba(124,58,237,0.7), rgba(6,182,212,0.5))",
-};
 
 // Body-specific info section per mode
 function ModeBody({ developer, intentConfig }: { developer: Developer; intentConfig: IntentConfig }) {
@@ -257,26 +235,29 @@ function ModeBody({ developer, intentConfig }: { developer: Developer; intentCon
 }
 
 export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig }: SwipeCardProps) {
+    const likeLabel = intentConfig?.likeLabel || "CONNECT";
     const x = useMotionValue(0);
-    const rotate = useTransform(x, [-200, 200], [-20, 20]);
-    const likeOpacity = useTransform(x, [30, 120], [0, 1]);
-    const passOpacity = useTransform(x, [-120, -30], [1, 0]);
+    const rotate = useTransform(x, [-200, 200], [-12, 12]);
+    const likeOpacity = useTransform(x, [30, 110], [0, 1]);
+    const passOpacity = useTransform(x, [-110, -30], [1, 0]);
     const cardRef = useRef<HTMLDivElement>(null);
     const accent = intentConfig.accentColor;
     const headerGradient = HEADER_GRADIENTS[intentConfig.id] || HEADER_GRADIENTS.casual;
 
     async function handleDragEnd(_: unknown, info: { offset: { x: number } }) {
-        const threshold = 120;
+        const threshold = 110;
         if (info.offset.x > threshold) {
-            await animate(x, 600, { duration: 0.3 });
+            await animate(x, 650, { duration: 0.28 });
             onSwipe(developer.id, "like");
         } else if (info.offset.x < -threshold) {
-            await animate(x, -600, { duration: 0.3 });
+            await animate(x, -650, { duration: 0.28 });
             onSwipe(developer.id, "pass");
         } else {
-            animate(x, 0, { type: "spring", stiffness: 300 });
+            animate(x, 0, { type: "spring", stiffness: 350, damping: 28 });
         }
     }
+
+    const scoreColor = getScoreColor(developer.compatibilityScore);
 
     return (
         <motion.div
@@ -286,78 +267,117 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                 position: "absolute",
                 width: "100%",
                 height: "100%",
-                top: `${stackIndex * 8}px`,
-                scale: isTop ? 1 : 0.96 - stackIndex * 0.02,
+                top: `${stackIndex * 10}px`,
+                scale: isTop ? 1 : 1 - stackIndex * 0.04,
                 zIndex: 10 - stackIndex,
+                cursor: isTop ? "grab" : "default",
+                transformOrigin: "bottom center",
             }}
             drag={isTop ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.9}
             onDragEnd={handleDragEnd}
-            className="cursor-grab active:cursor-grabbing"
+            whileDrag={{ cursor: "grabbing" }}
         >
             {/* Like stamp */}
             {isTop && (
-                <motion.div
-                    style={{ opacity: likeOpacity, border: `3px solid ${accent}`, color: accent } as any}
-                    className="absolute top-5 left-5 z-20 rotate-[-22deg] text-2xl font-black px-3 py-1 rounded-xl pointer-events-none"
-                >
-                    {intentConfig.likeLabel}
+                <motion.div style={{
+                    opacity: likeOpacity,
+                    position: "absolute", top: 24, left: 20, zIndex: 20,
+                    transform: "rotate(-18deg)",
+                    border: "3px solid #22C55E",
+                    color: "#22C55E",
+                    fontWeight: 900, fontSize: "1.3rem",
+                    padding: "0.2rem 0.9rem",
+                    borderRadius: "var(--radius-md)",
+                    pointerEvents: "none",
+                    letterSpacing: "0.05em",
+                    boxShadow: "0 0 20px rgba(34,197,94,0.3)",
+                    background: "rgba(34,197,94,0.08)",
+                    backdropFilter: "blur(8px)",
+                    display: "flex", alignItems: "center", gap: "0.3rem",
+                }}>
+                    <Heart size={16} fill="currentColor" />
+                    {likeLabel}
                 </motion.div>
             )}
-            {/* Pass stamp */}
+            {/* Nope stamp */}
             {isTop && (
-                <motion.div
-                    style={{ opacity: passOpacity, border: "3px solid #ef4444", color: "#ef4444" } as any}
-                    className="absolute top-5 right-5 z-20 rotate-[22deg] text-2xl font-black px-3 py-1 rounded-xl pointer-events-none"
-                >
+                <motion.div style={{
+                    opacity: passOpacity,
+                    position: "absolute", top: 24, right: 20, zIndex: 20,
+                    transform: "rotate(18deg)",
+                    border: "3px solid #EF4444",
+                    color: "#EF4444",
+                    fontWeight: 900, fontSize: "1.3rem",
+                    padding: "0.2rem 0.9rem",
+                    borderRadius: "var(--radius-md)",
+                    pointerEvents: "none",
+                    letterSpacing: "0.05em",
+                    boxShadow: "0 0 20px rgba(239,68,68,0.3)",
+                    background: "rgba(239,68,68,0.08)",
+                    backdropFilter: "blur(8px)",
+                    display: "flex", alignItems: "center", gap: "0.3rem",
+                }}>
+                    <X size={16} strokeWidth={2.5} />
                     NOPE
                 </motion.div>
             )}
 
-            {intentConfig.id === "networking" ? (
-                // LinkedIn Style Clean Layout for Networking
-                <div className="w-full h-full flex flex-col overflow-hidden select-none"
-                    style={{ background: "#18181A", border: `1px solid ${accent}40`, borderRadius: "1.25rem", boxShadow: `0 20px 60px rgba(0,0,0,0.5)` }}>
-                    
-                    {/* Cover Banner */}
-                    <div className="relative h-32 w-full shrink-0" style={{ background: "linear-gradient(135deg, #374151 0%, #1f2937 100%)" }}>
-                        <div className="absolute top-3 right-3 px-2 py-1 text-xs font-bold rounded-full"
-                            style={{ background: "rgba(0,0,0,0.6)", color: "white", backdropFilter: "blur(4px)" }}>
-                            {developer.compatibilityScore}% Match
-                        </div>
-                    </div>
-                    
-                    {/* Profile Body */}
-                    <div className="flex-1 flex flex-col px-5 pb-5 relative">
-                        {/* Overlapping Avatar */}
-                        <div className="absolute -top-12 left-5 rounded-full p-[3px] bg-[#18181A]">
-                            <img
-                                src={developer.avatarUrl || `https://ui-avatars.com/api/?name=${developer.username}&background=111&color=fff`}
-                                alt={developer.username}
-                                className="w-[84px] h-[84px] rounded-full object-cover"
-                            />
-                        </div>
+            {/* Card Content */}
+            <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
+                {/* Hero image area */}
+                <div style={{
+                    position: "relative",
+                    height: "55%",
+                    flexShrink: 0,
+                    overflow: "hidden",
+                }}>
+                    {/* Avatar as full-bleed image */}
+                    <img
+                        src={developer.avatarUrl || `https://ui-avatars.com/api/?name=${developer.username}&background=161620&color=E879F9&size=400&bold=true`}
+                        alt={developer.username}
+                        style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                        }}
+                    />
+                    {/* Gradient overlay */}
+                    <div style={{
+                        position: "absolute", inset: 0,
+                        background: "linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(9,9,14,0.95) 100%)",
+                    }} />
 
-                        {/* Text Content */}
-                        <div className="mt-12">
-                            <h2 className="text-[1.35rem] font-bold text-white leading-tight">
-                                {developer.name || developer.username}
-                            </h2>
-                            <p className="text-sm mt-2 text-gray-300 leading-snug">
-                                {developer.bio || "Software Engineer"}
-                            </p>
-                            {developer.location && (
-                                <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                                    </svg>
-                                    {developer.location}
-                                </p>
-                            )}
-                        </div>
-
-                        <ModeBody developer={developer} intentConfig={intentConfig} />
+                    {/* Match % badge */}
+                    <div style={{
+                        position: "absolute", top: 14, right: 14,
+                        padding: "0.3rem 0.7rem",
+                        borderRadius: "var(--radius-full)",
+                        background: "rgba(0,0,0,0.6)",
+                        backdropFilter: "blur(12px)",
+                        border: `1px solid ${scoreColor}40`,
+                        display: "flex", alignItems: "center", gap: "0.35rem",
+                        boxShadow: `0 0 12px ${scoreColor}30`,
+                    }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: scoreColor, boxShadow: `0 0 6px ${scoreColor}` }} />
+                        <span style={{ fontSize: "0.8rem", fontWeight: 800, color: scoreColor }}>{developer.compatibilityScore}% Match</span>
                     </div>
+
+                    {/* Location overlay on image */}
+                    {developer.location && (
+                        <div style={{
+                            position: "absolute", bottom: 12, left: 14,
+                            display: "flex", alignItems: "center", gap: "0.3rem",
+                            color: "rgba(255,255,255,0.7)",
+                            fontSize: "0.78rem", fontWeight: 500,
+                        }}>
+                            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 6px #22C55E", flexShrink: 0 }} />
+                            <MapPin size={12} />
+                            {developer.location}
+                        </div>
+                    )}
                 </div>
             ) : (
                 // Original Layout for other modes
@@ -369,41 +389,71 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                         boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px ${accent}10` 
                     }}>
 
-                    {/* Card Header */}
-                    <div className="relative h-40 flex items-end p-4 shrink-0" style={{ background: headerGradient }}>
-                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold"
-                            style={{ background: `${accent}25`, color: accent, border: `1px solid ${accent}40`, backdropFilter: "blur(8px)" }}>
-                            {intentConfig.emoji} {intentConfig.label}
-                        </div>
-
-                        <div className="absolute top-3 right-3 px-2.5 py-1 text-xs font-black rounded-lg"
-                            style={{ background: "rgba(0,0,0,0.4)", color: accent, border: `1px solid ${accent}40`, backdropFilter: "blur(8px)" }}>
-                            {developer.compatibilityScore}% match
-                        </div>
-
-                        {/* Avatar + name */}
-                        <div className="flex items-end gap-3 z-10 w-full">
-                            <img
-                                src={developer.avatarUrl || `https://ui-avatars.com/api/?name=${developer.username}&background=111&color=fff`}
-                                alt={developer.username}
-                                style={{ width: 64, height: 64, borderRadius: "0.875rem", border: `2px solid ${accent}60`, flexShrink: 0 }}
-                            />
-                            <div className="min-w-0">
-                                <h2 className="text-base font-bold text-white truncate leading-tight">{developer.name || developer.username}</h2>
-                                <p className="text-xs truncate" style={{ color: `${accent}cc` }}>@{developer.username}</p>
-                                {developer.location && (
-                                    <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.5)" }}>📍 {developer.location}</p>
-                                )}
-                            </div>
-                        </div>
+                {/* Card body */}
+                <div style={{
+                    flex: 1,
+                    padding: "1.1rem 1.25rem 1.25rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.75rem",
+                    overflow: "hidden",
+                }}>
+                    {/* Name & username */}
+                    <div>
+                        <h2 style={{
+                            fontSize: "1.3rem",
+                            fontWeight: 900,
+                            color: "var(--text-primary)",
+                            letterSpacing: "-0.02em",
+                            lineHeight: 1.1,
+                        }}>
+                            {developer.name || developer.username}
+                        </h2>
+                        <p style={{ fontSize: "0.82rem", color: "var(--accent-light)", fontWeight: 600, marginTop: "0.15rem" }}>
+                            @{developer.username}
+                        </p>
                     </div>
 
-                    {/* Card Body — mode-specific */}
-                    <div className="flex-1 p-4 flex flex-col gap-3 overflow-hidden">
-                        <ModeBody developer={developer} intentConfig={intentConfig} />
-                    </div>
+                    {/* Bio */}
+                    {developer.bio && (
+                        <p style={{
+                            fontSize: "0.82rem",
+                            color: "var(--text-secondary)",
+                            lineHeight: 1.55,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                        }}>
+                            {developer.bio}
+                        </p>
+                    )}
+
+                    {/* Tech stack */}
+                    {developer.primaryStack.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "auto" }}>
+                            {developer.primaryStack.slice(0, 5).map((lang) => {
+                                const color = LANG_COLORS[lang] || "#7E7D96";
+                                return (
+                                    <span key={lang} style={{
+                                        fontSize: "0.72rem",
+                                        fontWeight: 700,
+                                        padding: "0.25rem 0.6rem",
+                                        borderRadius: "var(--radius-full)",
+                                        background: `${color}15`,
+                                        color: color,
+                                        border: `1px solid ${color}30`,
+                                        display: "flex", alignItems: "center", gap: "0.3rem",
+                                    }}>
+                                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: color, display: "inline-block" }} />
+                                        {lang}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
         </motion.div>
     );
 }
