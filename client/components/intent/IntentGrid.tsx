@@ -18,7 +18,7 @@ interface IntentGridProps {
 }
 
 export default function IntentGrid({ selected, loading, onSelect }: IntentGridProps) {
-    const intents = Object.keys(INTENT_CONFIGS);
+    const intents: any[] = Object.values(INTENT_CONFIGS);
 
     return (
         <div style={{
@@ -29,7 +29,7 @@ export default function IntentGrid({ selected, loading, onSelect }: IntentGridPr
             maxWidth: 580,
             margin: "0 auto",
         }}>
-            {intents.map((id, i) => (
+            {intents.map((intent: any, i) => (
                 <IntentCard
                     key={intent.id}
                     id={intent.id}

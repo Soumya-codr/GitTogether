@@ -2,10 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Sparkles } from "lucide-react";
 
-interface MatchPopupProps {
-    visible: boolean;
-    matchedUser?: { name?: string | null; avatarUrl?: string | null };
-}
+interface MatchPopupProps { visible: boolean; intentMode?: string; };
 
 const MATCH_CONFIG: Record<string, { emoji: string; title: string; subtitle: string; color: string }> = {
     networking: { emoji: "🤝", title: "Connection Made!", subtitle: "A new professional connection awaits", color: "#60a5fa" },

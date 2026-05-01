@@ -26,9 +26,9 @@ export default function IntentCard({ id, emoji, label, description, selected, di
                 position: "relative",
                 overflow: "hidden",
                 background: selected
-                    ? `linear-gradient(135deg, ${accent}20, ${accent}08)`
+                    ? `linear-gradient(135deg, var(--accent)20, var(--accent)08)`
                     : "rgba(255,255,255,0.03)",
-                border: `1px solid ${selected ? accent : "rgba(255,255,255,0.07)"}`,
+                border: `1px solid ${selected ? "var(--accent)" : "rgba(255,255,255,0.07)"}`,
                 borderRadius: "1.25rem",
                 padding: "1.75rem 1rem 1.5rem",
                 display: "flex",
@@ -38,7 +38,7 @@ export default function IntentCard({ id, emoji, label, description, selected, di
                 cursor: disabled ? "not-allowed" : "pointer",
                 transition: "all 0.25s ease",
                 boxShadow: selected
-                    ? `0 0 30px ${glowColor}, 0 8px 32px rgba(0,0,0,0.4)`
+                    ? `0 0 30px var(--accent-glow), 0 8px 32px rgba(0,0,0,0.4)`
                     : "0 4px 20px rgba(0,0,0,0.3)",
                 textAlign: "center",
             }}

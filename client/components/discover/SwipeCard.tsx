@@ -1,3 +1,6 @@
+const getFeaturedRepo = (d: any): any => ({ repoName: "", language: "", stars: 0 });
+const getCoderPersonality = (d: any) => "Coder";
+const HEADER_GRADIENTS: any = { casual: "", networking: "" };
 "use client";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
@@ -379,16 +382,6 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                         </div>
                     )}
                 </div>
-            ) : (
-                // Original Layout for other modes
-                <div className="w-full h-full flex flex-col overflow-hidden select-none relative"
-                    style={{ 
-                        background: "var(--bg-card)", 
-                        border: `1px solid ${accent}20`, 
-                        borderRadius: "1.25rem", 
-                        boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px ${accent}10` 
-                    }}>
-
                 {/* Card body */}
                 <div style={{
                     flex: 1,

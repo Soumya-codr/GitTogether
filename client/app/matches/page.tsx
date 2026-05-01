@@ -10,6 +10,8 @@ import EmptyState from "@/components/shared/EmptyState";
 import MatchListItem from "@/components/matches/MatchListItem";
 import PendingLikeItem from "@/components/matches/PendingLikeItem";
 
+type Tab = "matches" | "networking";
+
 export default function MatchesPage() {
     const { status } = useSession();
     const router = useRouter();
