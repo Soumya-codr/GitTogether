@@ -14,7 +14,6 @@ export default function IntentPage() {
         if (loading) return;
         setSelected(id);
         setLoading(true);
-        // Save to localStorage so discover page knows the current mode
         localStorage.setItem("gt_intent", id);
         try {
             await api.patch(`/api/users/me`, { intentMode: id });
@@ -32,31 +31,64 @@ export default function IntentPage() {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            padding: "2.5rem 1.5rem",
-            background: "var(--bg-main)",
+            padding: "3rem 1.5rem",
+            background: "var(--bg-base)",
+            position: "relative",
+            overflow: "hidden",
         }}>
-            <motion.div
-                initial={{ opacity: 0, y: -18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45 }}
-                style={{ textAlign: "center", marginBottom: "3rem" }}
-            >
-                <h1 style={{ 
-                    fontSize: "2.6rem", 
-                    fontWeight: 900, 
-                    color: "var(--accent-pink)", 
-                    marginBottom: "0.75rem", 
-                    letterSpacing: "-0.03em",
-                    filter: "drop-shadow(0 2px 10px rgba(255,107,154,0.2))"
-                }}>
-                    What are you looking for?
-                </h1>
-                <p style={{ color: "var(--text-secondary)", fontSize: "1rem", fontWeight: 500, opacity: 0.8 }}>
-                    We&apos;ll match you with developers who share your intent.
-                </p>
-            </motion.div>
+            {/* Background orbs */}
+            <div className="orb orb-1" />
+            <div className="orb orb-2" />
 
-            <IntentGrid selected={selected} loading={loading} onSelect={handleSelect} />
+            <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 560, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45 }}
+                    style={{ textAlign: "center", marginBottom: "2.5rem" }}
+                >
+                    <div style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                        padding: "0.3rem 0.9rem",
+                        borderRadius: "var(--radius-full)",
+                        background: "rgba(192, 38, 211, 0.08)",
+                        border: "1px solid var(--border-accent)",
+                        color: "var(--accent-light)",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase" as const,
+                        marginBottom: "1.1rem",
+                    }}>
+                        Step 1 of 1
+                    </div>
+                    <h1 style={{
+                        fontSize: "clamp(1.9rem, 5vw, 2.6rem)",
+                        fontWeight: 900,
+                        color: "var(--text-primary)",
+                        letterSpacing: "-0.03em",
+                        marginBottom: "0.6rem",
+                        lineHeight: 1.1,
+                    }}>
+                        Choose your{" "}
+                        <span style={{
+                            background: "linear-gradient(135deg, var(--accent-light), var(--accent-alt))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                        }}>
+                            world
+                        </span>
+                    </h1>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", fontWeight: 500, lineHeight: 1.55 }}>
+                        Each mode shapes who you meet and how you connect.
+                    </p>
+                </motion.div>
+
+                <IntentGrid selected={selected} loading={loading} onSelect={handleSelect} />
+            </div>
         </main>
     );
 }

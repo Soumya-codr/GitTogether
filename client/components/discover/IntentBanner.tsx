@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
+import { Settings2 } from "lucide-react";
 import type { IntentConfig } from "@/lib/intentConfig";
 
 interface IntentBannerProps {
@@ -9,48 +9,45 @@ interface IntentBannerProps {
 
 export default function IntentBanner({ config, onChangeIntent }: IntentBannerProps) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0.65rem 1rem",
-                borderRadius: "0.75rem",
-                background: config.accentBg,
-                border: `1px solid ${config.accentColor}33`,
-                width: "100%",
-                maxWidth: 420,
-            }}
-        >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <span style={{ fontSize: "1.3rem" }}>{config.emoji}</span>
-                <div>
-                    <p style={{ fontWeight: 700, fontSize: "0.8rem", color: config.accentColor }}>
-                        {config.label}
-                    </p>
-                    <p style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 1 }}>
-                        {config.tagline}
-                    </p>
-                </div>
-            </div>
+        <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.6rem",
+            padding: "0.4rem 0.9rem 0.4rem 0.6rem",
+            borderRadius: "var(--radius-full)",
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            boxShadow: "var(--shadow-sm)",
+        }}>
+            <span style={{
+                width: 28, height: 28,
+                borderRadius: "var(--radius-sm)",
+                background: "var(--bg-elevated)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "0.9rem",
+            }}>
+                {config.emoji || "🔗"}
+            </span>
+            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-secondary)" }}>
+                {config.label || "Casual Dev Connect"}
+            </span>
             <button
                 onClick={onChangeIntent}
                 style={{
-                    background: "none",
-                    border: `1px solid ${config.accentColor}55`,
-                    borderRadius: "0.4rem",
-                    color: config.accentColor,
-                    fontSize: "0.7rem",
-                    fontWeight: 600,
-                    padding: "0.3rem 0.65rem",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
+                    background: "none", border: "none",
+                    color: "var(--text-muted)", cursor: "pointer",
+                    display: "flex", alignItems: "center",
+                    padding: "0.15rem",
+                    borderRadius: "var(--radius-sm)",
+                    transition: "color 0.15s",
+                    marginLeft: "0.25rem",
                 }}
+                title="Change mode"
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-light)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
             >
-                Change
+                <Settings2 size={14} />
             </button>
-        </motion.div>
+        </div>
     );
 }

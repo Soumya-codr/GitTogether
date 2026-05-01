@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { useRef } from "react";
+import { MapPin, Heart, X } from "lucide-react";
 import type { IntentConfig } from "@/lib/intentConfig";
 
 interface Developer {
@@ -25,48 +26,40 @@ interface SwipeCardProps {
 }
 
 const LANG_COLORS: Record<string, string> = {
-    JavaScript: "#f7df1e",
-    TypeScript: "#3178c6",
-    Python: "#3572a5",
-    Go: "#00add8",
-    Rust: "#dea584",
-    Java: "#b07219",
-    "C++": "#f34b7d",
-    Ruby: "#701516",
-    Swift: "#fa7343",
-    Kotlin: "#a97bff",
+    JavaScript: "#F7DF1E", TypeScript: "#3178C6", Python: "#3572A5",
+    Go: "#00ADD8", Rust: "#DEA584", Java: "#B07219", "C++": "#F34B7D",
+    Ruby: "#701516", Swift: "#FA7343", Kotlin: "#A97BFF",
+    CSS: "#563D7C", HTML: "#E34C26", PHP: "#777BB4",
 };
 
-const INTENT_LABELS: Record<string, string> = {
-    networking: "Professional Networking",
-    collab: "Project Collaboration",
-    hackathon: "Hackathon Partner",
-    learning: "Learning Buddy",
-    dating: "Dating Mode",
-    casual: "Casual Dev Connect",
-};
+function getScoreColor(score: number): string {
+    if (score >= 90) return "#22C55E";
+    if (score >= 70) return "#F59E0B";
+    return "#C026D3";
+}
 
 export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig }: SwipeCardProps) {
-    const accentColor = "var(--accent-pink)";
-    const likeLabel = intentConfig?.likeLabel || "LIKE";
+    const likeLabel = intentConfig?.likeLabel || "CONNECT";
     const x = useMotionValue(0);
-    const rotate = useTransform(x, [-200, 200], [-15, 15]);
-    const likeOpacity = useTransform(x, [30, 120], [0, 1]);
-    const passOpacity = useTransform(x, [-120, -30], [1, 0]);
+    const rotate = useTransform(x, [-200, 200], [-12, 12]);
+    const likeOpacity = useTransform(x, [30, 110], [0, 1]);
+    const passOpacity = useTransform(x, [-110, -30], [1, 0]);
     const cardRef = useRef<HTMLDivElement>(null);
 
     async function handleDragEnd(_: unknown, info: { offset: { x: number } }) {
-        const threshold = 120;
+        const threshold = 110;
         if (info.offset.x > threshold) {
-            await animate(x, 600, { duration: 0.3 });
+            await animate(x, 650, { duration: 0.28 });
             onSwipe(developer.id, "like");
         } else if (info.offset.x < -threshold) {
-            await animate(x, -600, { duration: 0.3 });
+            await animate(x, -650, { duration: 0.28 });
             onSwipe(developer.id, "pass");
         } else {
-            animate(x, 0, { type: "spring", stiffness: 300 });
+            animate(x, 0, { type: "spring", stiffness: 350, damping: 28 });
         }
     }
+
+    const scoreColor = getScoreColor(developer.compatibilityScore);
 
     return (
         <motion.div
@@ -77,145 +70,182 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                 position: "absolute",
                 width: "100%",
                 height: "100%",
-                top: `${stackIndex * 8}px`,
-                scale: isTop ? 1 : 0.96 - stackIndex * 0.02,
+                top: `${stackIndex * 10}px`,
+                scale: isTop ? 1 : 1 - stackIndex * 0.04,
                 zIndex: 10 - stackIndex,
                 cursor: isTop ? "grab" : "default",
-                background: "var(--bg-card)",
-                border: "1px solid var(--card-border)",
-                borderRadius: "1.25rem",
-                boxShadow: "var(--soft-shadow)",
+                transformOrigin: "bottom center",
             }}
             drag={isTop ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.9}
             onDragEnd={handleDragEnd}
+            whileDrag={{ cursor: "grabbing" }}
         >
-            {/* Stamps */}
+            {/* Like stamp */}
             {isTop && (
                 <motion.div style={{
                     opacity: likeOpacity,
-                    position: "absolute", top: 30, left: 30, zIndex: 20,
-                    transform: "rotate(-15deg)",
-                    border: `4px solid ${accentColor}`,
-                    color: accentColor,
-                    fontWeight: 900, fontSize: "1.6rem",
-                    padding: "0.25rem 1rem",
-                    borderRadius: "0.75rem",
+                    position: "absolute", top: 24, left: 20, zIndex: 20,
+                    transform: "rotate(-18deg)",
+                    border: "3px solid #22C55E",
+                    color: "#22C55E",
+                    fontWeight: 900, fontSize: "1.3rem",
+                    padding: "0.2rem 0.9rem",
+                    borderRadius: "var(--radius-md)",
                     pointerEvents: "none",
-                    textShadow: "0 0 10px rgba(255,107,154,0.3)",
-                }}>{likeLabel}</motion.div>
+                    letterSpacing: "0.05em",
+                    boxShadow: "0 0 20px rgba(34,197,94,0.3)",
+                    background: "rgba(34,197,94,0.08)",
+                    backdropFilter: "blur(8px)",
+                    display: "flex", alignItems: "center", gap: "0.3rem",
+                }}>
+                    <Heart size={16} fill="currentColor" />
+                    {likeLabel}
+                </motion.div>
             )}
+            {/* Nope stamp */}
             {isTop && (
                 <motion.div style={{
                     opacity: passOpacity,
-                    position: "absolute", top: 30, right: 30, zIndex: 20,
-                    transform: "rotate(15deg)",
-                    border: "4px solid #555",
-                    color: "#555",
-                    fontWeight: 900, fontSize: "1.6rem",
-                    padding: "0.25rem 1rem",
-                    borderRadius: "0.75rem",
+                    position: "absolute", top: 24, right: 20, zIndex: 20,
+                    transform: "rotate(18deg)",
+                    border: "3px solid #EF4444",
+                    color: "#EF4444",
+                    fontWeight: 900, fontSize: "1.3rem",
+                    padding: "0.2rem 0.9rem",
+                    borderRadius: "var(--radius-md)",
                     pointerEvents: "none",
-                }}>NOPE</motion.div>
+                    letterSpacing: "0.05em",
+                    boxShadow: "0 0 20px rgba(239,68,68,0.3)",
+                    background: "rgba(239,68,68,0.08)",
+                    backdropFilter: "blur(8px)",
+                    display: "flex", alignItems: "center", gap: "0.3rem",
+                }}>
+                    <X size={16} strokeWidth={2.5} />
+                    NOPE
+                </motion.div>
             )}
 
             {/* Card Content */}
             <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
-                {/* Header */}
+                {/* Hero image area */}
                 <div style={{
                     position: "relative",
-                    height: 180,
-                    display: "flex",
-                    alignItems: "flex-end",
-                    padding: "1.5rem",
-                    background: "linear-gradient(180deg, rgba(255,107,154,0.05) 0%, rgba(18,18,18,0) 100%)",
+                    height: "55%",
                     flexShrink: 0,
+                    overflow: "hidden",
                 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", width: "100%", zIndex: 1 }}>
-                        <img
-                            src={developer.avatarUrl || `https://ui-avatars.com/api/?name=${developer.username}\u0026background=242424\u0026color=FF6B9A`}
-                            alt={developer.username}
-                            style={{ 
-                                width: 80, height: 80, 
-                                borderRadius: "1rem", 
-                                border: "2px solid var(--card-border)", 
-                                flexShrink: 0,
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-                            }}
-                        />
-                        <div style={{ minWidth: 0 }}>
-                            <h2 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {developer.name || developer.username}
-                            </h2>
-                            <p style={{ fontSize: "0.9rem", color: "var(--accent-pink)", fontWeight: 600 }}>@{developer.username}</p>
-                            {developer.location && (
-                                <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: 4, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                                   <span style={{opacity: 0.6}}>📍</span> {developer.location}
-                                </p>
-                            )}
-                        </div>
+                    {/* Avatar as full-bleed image */}
+                    <img
+                        src={developer.avatarUrl || `https://ui-avatars.com/api/?name=${developer.username}&background=161620&color=E879F9&size=400&bold=true`}
+                        alt={developer.username}
+                        style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                        }}
+                    />
+                    {/* Gradient overlay */}
+                    <div style={{
+                        position: "absolute", inset: 0,
+                        background: "linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(9,9,14,0.95) 100%)",
+                    }} />
+
+                    {/* Match % badge */}
+                    <div style={{
+                        position: "absolute", top: 14, right: 14,
+                        padding: "0.3rem 0.7rem",
+                        borderRadius: "var(--radius-full)",
+                        background: "rgba(0,0,0,0.6)",
+                        backdropFilter: "blur(12px)",
+                        border: `1px solid ${scoreColor}40`,
+                        display: "flex", alignItems: "center", gap: "0.35rem",
+                        boxShadow: `0 0 12px ${scoreColor}30`,
+                    }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: scoreColor, boxShadow: `0 0 6px ${scoreColor}` }} />
+                        <span style={{ fontSize: "0.8rem", fontWeight: 800, color: scoreColor }}>{developer.compatibilityScore}% Match</span>
                     </div>
+
+                    {/* Location overlay on image */}
+                    {developer.location && (
+                        <div style={{
+                            position: "absolute", bottom: 12, left: 14,
+                            display: "flex", alignItems: "center", gap: "0.3rem",
+                            color: "rgba(255,255,255,0.7)",
+                            fontSize: "0.78rem", fontWeight: 500,
+                        }}>
+                            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 6px #22C55E", flexShrink: 0 }} />
+                            <MapPin size={12} />
+                            {developer.location}
+                        </div>
+                    )}
                 </div>
 
-                {/* Body */}
-                <div style={{ flex: 1, padding: "0 1.5rem 1.5rem", display: "flex", flexDirection: "column", gap: "1rem", overflow: "hidden" }}>
+                {/* Card body */}
+                <div style={{
+                    flex: 1,
+                    padding: "1.1rem 1.25rem 1.25rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.75rem",
+                    overflow: "hidden",
+                }}>
+                    {/* Name & username */}
+                    <div>
+                        <h2 style={{
+                            fontSize: "1.3rem",
+                            fontWeight: 900,
+                            color: "var(--text-primary)",
+                            letterSpacing: "-0.02em",
+                            lineHeight: 1.1,
+                        }}>
+                            {developer.name || developer.username}
+                        </h2>
+                        <p style={{ fontSize: "0.82rem", color: "var(--accent-light)", fontWeight: 600, marginTop: "0.15rem" }}>
+                            @{developer.username}
+                        </p>
+                    </div>
+
+                    {/* Bio */}
                     {developer.bio && (
-                        <p style={{ 
-                            fontSize: "0.9rem", 
-                            color: "var(--text-secondary)", 
-                            lineHeight: 1.6, 
-                            display: "-webkit-box", 
-                            WebkitLineClamp: 3, 
-                            WebkitBoxOrient: "vertical", 
-                            overflow: "hidden" 
+                        <p style={{
+                            fontSize: "0.82rem",
+                            color: "var(--text-secondary)",
+                            lineHeight: 1.55,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
                         }}>
                             {developer.bio}
                         </p>
                     )}
 
-                    <div>
-                        <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.75rem", opacity: 0.4 }}>Primary Stack</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                            {(developer.primaryStack as string[]).map((lang) => (
-                                <span key={lang} style={{
-                                    fontSize: "0.75rem", fontWeight: 600,
-                                    padding: "0.3rem 0.75rem",
-                                    borderRadius: "0.5rem",
-                                    background: "rgba(255,255,255,0.03)",
-                                    color: LANG_COLORS[lang] || "var(--text-primary)",
-                                    border: `1px solid ${(LANG_COLORS[lang] || "#ffffff") + "22"}`,
-                                }}>{lang}</span>
-                            ))}
+                    {/* Tech stack */}
+                    {developer.primaryStack.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "auto" }}>
+                            {developer.primaryStack.slice(0, 5).map((lang) => {
+                                const color = LANG_COLORS[lang] || "#7E7D96";
+                                return (
+                                    <span key={lang} style={{
+                                        fontSize: "0.72rem",
+                                        fontWeight: 700,
+                                        padding: "0.25rem 0.6rem",
+                                        borderRadius: "var(--radius-full)",
+                                        background: `${color}15`,
+                                        color: color,
+                                        border: `1px solid ${color}30`,
+                                        display: "flex", alignItems: "center", gap: "0.3rem",
+                                    }}>
+                                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: color, display: "inline-block" }} />
+                                        {lang}
+                                    </span>
+                                );
+                            })}
                         </div>
-                    </div>
-
-                    <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", opacity: 0.6 }}>Seeking:</span>
-                        <span style={{ 
-                            fontSize: "0.8rem", 
-                            fontWeight: 700, 
-                            color: "var(--accent-pink)",
-                            background: "rgba(255,107,154,0.05)",
-                            padding: "0.2rem 0.6rem",
-                            borderRadius: "0.4rem"
-                        }}>
-                            {INTENT_LABELS[developer.intentMode] || developer.intentMode}
-                        </span>
-                    </div>
-                </div>
-                
-                {/* Score badge (Floating) */}
-                <div style={{
-                    position: "absolute", top: 20, right: 20,
-                    padding: "0.4rem 0.8rem",
-                    fontSize: "0.8rem", fontWeight: 800,
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--card-border)",
-                    color: "var(--accent-pink)",
-                    borderRadius: "0.6rem",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}>
-                    {developer.compatibilityScore}%
+                    )}
                 </div>
             </div>
         </motion.div>

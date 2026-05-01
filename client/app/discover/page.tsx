@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import api from "@/lib/api";
 import Navbar from "@/components/shared/Navbar";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
@@ -11,8 +12,6 @@ import ActionButtons from "@/components/discover/ActionButtons";
 import MatchPopup from "@/components/discover/MatchPopup";
 import IntentBanner from "@/components/discover/IntentBanner";
 import { INTENT_CONFIGS, DEFAULT_INTENT } from "@/lib/intentConfig";
-
-
 
 export default function DiscoverPage() {
     const { data: session, status } = useSession();
@@ -24,7 +23,6 @@ export default function DiscoverPage() {
 
     useEffect(() => { if (status === "unauthenticated") router.replace("/"); }, [status, router]);
 
-    // Read intent from localStorage (set on /intent page)
     useEffect(() => {
         const saved = localStorage.getItem("gt_intent");
         if (saved && INTENT_CONFIGS[saved]) setIntentMode(saved);
@@ -37,7 +35,7 @@ export default function DiscoverPage() {
         try {
             const res = await api.get(`/api/discover?intent=${intentMode}`);
             setDeck(res.data);
-        } catch { }
+        } catch {}
         finally { setLoading(false); }
     }, [intentMode]);
 
@@ -51,7 +49,7 @@ export default function DiscoverPage() {
                 setMatchVisible(true);
                 setTimeout(() => setMatchVisible(false), 4000);
             }
-        } catch { }
+        } catch {}
     };
 
     if (status === "loading" || loading) return <LoadingSpinner />;
@@ -60,7 +58,7 @@ export default function DiscoverPage() {
     const current = deck[0];
 
     return (
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg-base)" }}>
             <Navbar />
             <MatchPopup visible={matchVisible} />
 
@@ -70,26 +68,29 @@ export default function DiscoverPage() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "1.5rem 1rem",
-                gap: "1.25rem",
+                padding: "1.5rem 1rem 2rem",
+                gap: "1.5rem",
             }}>
-                {/* Intent banner at top */}
-                <IntentBanner
-                    config={intentConfig}
-                    onChangeIntent={() => router.push("/intent")}
-                />
+                {/* Mode indicator pill */}
+                <IntentBanner config={intentConfig} onChangeIntent={() => router.push("/intent")} />
 
                 {deck.length === 0 ? (
                     <EmptyState
-                        emoji="🤷‍♂️"
+                        emoji="🤷"
                         title="You've seen everyone!"
-                        subtitle={intentConfig.emptyMsg}
+                        subtitle={intentConfig.emptyMsg || "Check back later — new developers join every day."}
                         actionLabel="Refresh"
                         onAction={fetchDeck}
                     />
                 ) : (
                     <>
-                        <div className="card-deck-container">
+                        {/* Card deck */}
+                        <motion.div
+                            className="card-deck-container"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4 }}
+                        >
                             {top3.map((dev, i) => (
                                 <SwipeCard
                                     key={dev.id}
@@ -100,8 +101,9 @@ export default function DiscoverPage() {
                                     intentConfig={intentConfig}
                                 />
                             ))}
-                        </div>
+                        </motion.div>
 
+                        {/* Action buttons */}
                         <ActionButtons
                             onPass={() => handleSwipe(current.id, "pass")}
                             onSuperLike={() => handleSwipe(current.id, "superlike")}
@@ -109,7 +111,8 @@ export default function DiscoverPage() {
                             accentColor={intentConfig.accentColor}
                         />
 
-                        <p style={{ fontSize: "0.73rem", color: "var(--muted)" }}>
+                        {/* Queue hint */}
+                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>
                             {intentConfig.actionHint} · {deck.length} in queue
                         </p>
                     </>

@@ -2,12 +2,12 @@
 import IntentCard from "./IntentCard";
 
 const INTENTS = [
-    { id: "networking", emoji: "💼", label: "Professional Networking" },
-    { id: "collab", emoji: "🚀", label: "Project Collaboration" },
-    { id: "hackathon", emoji: "🏆", label: "Hackathon Partner" },
-    { id: "learning", emoji: "📚", label: "Learning Buddy" },
-    { id: "dating", emoji: "💝", label: "Dating Mode" },
-    { id: "casual", emoji: "🎮", label: "Casual Dev Connect" },
+    { id: "networking", emoji: "💼", label: "Professional Networking", description: "Build your professional dev network" },
+    { id: "collab",     emoji: "🚀", label: "Project Collaboration",   description: "Find your next co-founder or open-source partner" },
+    { id: "hackathon",  emoji: "⚡", label: "Hackathon Partner",       description: "Team up and ship something in 48 hours" },
+    { id: "learning",   emoji: "📚", label: "Learning Buddy",          description: "Master new tech stacks together" },
+    { id: "dating",     emoji: "💝", label: "Dating Mode",             description: "Connect with developers on a deeper level" },
+    { id: "casual",     emoji: "🎮", label: "Casual Dev Connect",      description: "Just hang out and talk code" },
 ];
 
 interface IntentGridProps {
@@ -25,6 +25,7 @@ export default function IntentGrid({ selected, loading, onSelect }: IntentGridPr
                     id={intent.id}
                     emoji={intent.emoji}
                     label={intent.label}
+                    description={intent.description}
                     selected={selected === intent.id}
                     disabled={loading}
                     index={i}
