@@ -275,6 +275,10 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                 zIndex: 10 - stackIndex,
                 cursor: isTop ? "grab" : "default",
                 transformOrigin: "bottom center",
+                background: "var(--bg-surface, #161620)",
+                borderRadius: "var(--radius-xl, 1.5rem)",
+                overflow: "hidden",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)",
             }}
             drag={isTop ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}

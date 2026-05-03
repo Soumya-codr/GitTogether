@@ -41,22 +41,28 @@ export default function NetworkingFeed({ deck, onConnect, intentConfig }: Networ
         <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row gap-6">
             
             {/* Left Sidebar - Mini Profile */}
-            <aside className="hidden md:block w-64 shrink-0">
-                <div className="bg-[#18181A] rounded-xl border border-gray-800 overflow-hidden shadow-lg sticky top-24">
-                    <div className="h-16 bg-gradient-to-r from-gray-700 to-gray-600"></div>
-                    <div className="px-4 pb-4 relative">
+            <aside style={{ width: "16rem", flexShrink: 0 }}>
+                <div style={{ backgroundColor: "#18181A", borderRadius: "0.75rem", border: "1px solid #1f2937", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.5)", position: "sticky", top: "6rem" }}>
+                    {/* Banner */}
+                    <div style={{ height: "60px", background: "linear-gradient(to right, #374151, #4b5563)" }} />
+                    {/* Profile content */}
+                    <div style={{ padding: "0 1rem 1rem 1rem", display: "flex", flexDirection: "column", alignItems: "center", marginTop: "-32px" }}>
                         <img 
                             src={user?.image || `https://ui-avatars.com/api/?name=${user?.name || "User"}`} 
                             alt="Profile" 
-                            className="w-16 h-16 rounded-full border-2 border-[#18181A] absolute -top-8 left-4 object-cover"
+                            style={{ 
+                                width: "64px", height: "64px", borderRadius: "50%", 
+                                border: "3px solid #18181A", objectFit: "cover",
+                                display: "block"
+                            }}
                         />
-                        <div className="mt-10">
-                            <h3 className="font-bold text-white text-lg leading-tight">{user?.name || user?.username || "Developer"}</h3>
-                            <p className="text-xs text-gray-400 mt-1">Building the future</p>
-                        </div>
-                        <div className="mt-4 pt-4 border-t border-gray-800">
-                            <p className="text-xs text-gray-500 font-semibold mb-2">Intent Mode</p>
-                            <span className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded-full">
+                        <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "1.1rem", marginTop: "0.5rem", textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                            {user?.name || user?.username || "Developer"}
+                        </h3>
+                        <p style={{ color: "#9ca3af", fontSize: "0.75rem", marginTop: "0.25rem" }}>Building the future</p>
+                        <div style={{ width: "100%", borderTop: "1px solid #1f2937", marginTop: "0.75rem", paddingTop: "0.75rem" }}>
+                            <p style={{ color: "#6b7280", fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.5rem" }}>Intent Mode</p>
+                            <span style={{ padding: "0.25rem 0.5rem", backgroundColor: "rgba(96,165,250,0.1)", color: "#60a5fa", fontSize: "0.75rem", fontWeight: 700, borderRadius: "9999px" }}>
                                 {intentConfig.emoji} {intentConfig.label}
                             </span>
                         </div>
@@ -65,26 +71,27 @@ export default function NetworkingFeed({ deck, onConnect, intentConfig }: Networ
             </aside>
 
             {/* Main Feed */}
-            <main className="flex-1 flex flex-col gap-5 pb-20">
+            <main style={{ flex: 1, display: "flex", flexDirection: "column", gap: "1.25rem", paddingBottom: "5rem" }}>
+                <h2 style={{ display: "none" }}>FIXED VERSION</h2>
                 {deck.map((dev) => {
                     const repos = dev.repositories || [];
                     const totalStars = repos.reduce((s, r) => s + r.stars, 0);
                     const isPending = pendingIds.has(dev.id);
 
                     return (
-                        <div key={dev.id} className="bg-[#18181A] rounded-xl border border-gray-800 overflow-hidden shadow-lg transition-opacity duration-300" style={{ opacity: isPending ? 0.6 : 1 }}>
-                            <div className="p-4 flex gap-4">
+                        <div key={dev.id} className="rounded-xl border border-gray-800 overflow-hidden shadow-lg transition-opacity duration-300" style={{ backgroundColor: "#18181A", opacity: isPending ? 0.6 : 1, display: "flex", flexDirection: "column" }}>
+                            <div style={{ padding: "1rem", display: "flex", gap: "1rem" }}>
                                 <img 
                                     src={dev.avatarUrl || `https://ui-avatars.com/api/?name=${dev.username}`} 
                                     alt={dev.username} 
-                                    className="w-14 h-14 rounded-full object-cover shrink-0"
+                                    style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
                                 />
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-start gap-2">
-                                        <div>
-                                            <h2 className="text-base font-bold text-white truncate">{dev.name || dev.username}</h2>
-                                            <p className="text-xs text-gray-400 truncate mt-0.5">{dev.bio || "Software Engineer"}</p>
-                                            <p className="text-xs text-gray-500 mt-0.5">{dev.location || "Earth"} · <span className="text-blue-400 font-semibold">{dev.compatibilityScore}% Match</span></p>
+                                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                                        <div style={{ flex: 1, minWidth: 0, paddingRight: "0.5rem" }}>
+                                            <h2 className="text-base font-bold text-white" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: 0 }}>{dev.name || dev.username}</h2>
+                                            <p className="text-xs text-gray-400" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: "0.125rem 0 0 0" }}>{dev.bio || "Software Engineer"}</p>
+                                            <p className="text-xs text-gray-500" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: "0.125rem 0 0 0" }}>{dev.location || "Earth"} · <span className="text-blue-400 font-semibold">{dev.compatibilityScore}% Match</span></p>
                                         </div>
                                         <button 
                                             onClick={() => handleConnect(dev.id)}
@@ -100,20 +107,20 @@ export default function NetworkingFeed({ deck, onConnect, intentConfig }: Networ
                                     </div>
 
                                     {/* Highlights */}
-                                    <div className="mt-4 pt-3 border-t border-gray-800 flex gap-6">
+                                    <div style={{ marginTop: "1rem", paddingTop: "0.75rem", borderTop: "1px solid #1f2937", display: "flex", gap: "1.5rem" }}>
                                         <div>
-                                            <p className="text-[10px] text-gray-500 uppercase font-bold">Projects</p>
-                                            <p className="text-sm text-gray-300 font-semibold">{repos.length}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase font-bold" style={{ margin: 0 }}>Projects</p>
+                                            <p className="text-sm text-gray-300 font-semibold" style={{ margin: 0 }}>{repos.length}</p>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-gray-500 uppercase font-bold">Stars</p>
-                                            <p className="text-sm text-gray-300 font-semibold">{totalStars}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase font-bold" style={{ margin: 0 }}>Stars</p>
+                                            <p className="text-sm text-gray-300 font-semibold" style={{ margin: 0 }}>{totalStars}</p>
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Top Skills</p>
-                                            <div className="flex flex-wrap gap-1.5">
+                                        <div style={{ flex: 1 }}>
+                                            <p className="text-[10px] text-gray-500 uppercase font-bold mb-1" style={{ margin: 0, marginBottom: "0.25rem" }}>Top Skills</p>
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
                                                 {(dev.primaryStack || []).slice(0, 4).map(lang => (
-                                                    <span key={lang} className="text-[10px] px-2 py-0.5 bg-gray-800 text-gray-300 rounded border border-gray-700">
+                                                    <span key={lang} className="text-[10px] bg-gray-800 text-gray-300 border border-gray-700" style={{ padding: "0.125rem 0.5rem", borderRadius: "0.25rem" }}>
                                                         {lang}
                                                     </span>
                                                 ))}

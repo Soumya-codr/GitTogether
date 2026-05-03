@@ -25,10 +25,16 @@ export default function MatchesPage() {
 
     useEffect(() => {
         if (status !== "authenticated") return;
-        api.get(`/api/matches`)
-            .then((r) => setMatches(r.data))
-            .catch(() => {})
-            .finally(() => setLoading(false));
+        Promise.all([
+            api.get(`/api/matches`),
+            api.get(`/api/swipes/pending`)
+        ])
+        .then(([matchesRes, pendingRes]) => {
+            setMatches(matchesRes.data || []);
+            setPending(pendingRes.data || []);
+        })
+        .catch((err) => console.error(err))
+        .finally(() => setLoading(false));
     }, [status]);
 
     if (loading) return <LoadingSpinner />;
@@ -122,28 +128,54 @@ export default function MatchesPage() {
                 </div>
 
                 {/* Match list */}
-                {matches.length === 0 ? (
-                    <EmptyState
-                        emoji="🔭"
-                        title="No matches yet"
-                        subtitle="Start swiping on the Discover page to find your first match."
-                        actionLabel="Start Discovering"
-                        actionHref="/discover"
-                    />
+                {activeTab === "mutual" ? (
+                    matches.length === 0 ? (
+                        <EmptyState
+                            emoji="🔭"
+                            title="No matches yet"
+                            subtitle="Start swiping on the Discover page to find your first match."
+                            actionLabel="Start Discovering"
+                            actionHref="/discover"
+                        />
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                            {matches.map((m, i) => (
+                                <MatchListItem
+                                    key={m.matchId}
+                                    matchId={m.matchId}
+                                    partner={m.partner}
+                                    lastMessage={m.lastMessage}
+                                    compatibilityScore={m.compatibilityScore}
+                                    index={i}
+                                    onUnmatch={() => setMatches(prev => prev.filter(item => item.matchId !== m.matchId))}
+                                />
+                            ))}
+                        </div>
+                    )
                 ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                        {matches.map((m, i) => (
-                            <MatchListItem
-                                key={m.matchId}
-                                matchId={m.matchId}
-                                partner={m.partner}
-                                lastMessage={m.lastMessage}
-                                compatibilityScore={m.compatibilityScore}
-                                index={i}
-                                onUnmatch={() => setMatches(prev => prev.filter(item => item.matchId !== m.matchId))}
-                            />
-                        ))}
-                    </div>
+                    pending.length === 0 ? (
+                        <EmptyState
+                            emoji="⏳"
+                            title="No pending likes"
+                            subtitle="You haven't liked anyone recently. Go discover some amazing devs!"
+                            actionLabel="Go Discover"
+                            actionHref="/discover"
+                        />
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                            {pending.map((p, i) => (
+                                <PendingLikeItem
+                                    key={p.targetId}
+                                    targetId={p.targetId}
+                                    swipeType={p.swipeType}
+                                    likedAt={p.likedAt}
+                                    user={p.user}
+                                    index={i}
+                                    onUndo={(id) => setPending(prev => prev.filter(item => item.targetId !== id))}
+                                />
+                            ))}
+                        </div>
+                    )
                 )}
             </main>
         </div>

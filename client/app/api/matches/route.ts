@@ -31,7 +31,32 @@ export async function GET() {
         compatibilityScore: m.compatibilityScore,
         createdAt: m.createdAt,
         partner: m.user1Id === currentUser.id ? m.user2 : m.user1,
+        matchId: m.id, // Ensure matchId is returned for the frontend
     }));
 
-    return NextResponse.json(formatted);
+    // Find users the current user liked, but who haven't matched back yet
+    const matchedIds = matches.map((m) =>
+        m.user1Id === currentUser.id ? m.user2Id : m.user1Id
+    );
+
+    const pendingSwipes = await prisma.swipe.findMany({
+        where: {
+            swiperId: currentUser.id,
+            swipeType: { in: ["like", "superlike"] },
+            targetId: { notIn: matchedIds },
+        },
+        include: {
+            target: { select: { id: true, username: true, name: true, avatarUrl: true, primaryStack: true, bio: true } },
+        },
+        orderBy: { createdAt: "desc" },
+    });
+
+    const pending = pendingSwipes.map((s) => ({
+        targetId: s.targetId,
+        swipeType: s.swipeType,
+        likedAt: s.createdAt,
+        user: s.target,
+    }));
+
+    return NextResponse.json({ matches: formatted, pending });
 }
