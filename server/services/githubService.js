@@ -39,7 +39,7 @@ async function fetchReposAndStack(username, accessToken) {
     // Aggregate language counts
     const langCount = {};
     const repoData = repos
-        .filter((r) => !r.fork)
+        
         .map((r) => {
             if (r.language) {
                 langCount[r.language] = (langCount[r.language] || 0) + 1;

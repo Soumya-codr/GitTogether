@@ -43,7 +43,7 @@ export default function ProfilePage() {
                     ]);
                     const g = ghUser.data;
                     const repos = ghRepos.data
-                        .filter((r: any) => !r.fork)
+                        
                         .map((r: any) => ({ id: r.id.toString(), repoName: r.name, language: r.language, stars: r.stargazers_count, forks: r.forks_count, topics: r.topics || [] }))
                         .sort((a: any, b: any) => b.stars - a.stars);
                     const langCount: Record<string, number> = {};
