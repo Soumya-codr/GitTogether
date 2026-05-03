@@ -1,7 +1,7 @@
+"use client";
 const getFeaturedRepo = (d: any): any => ({ repoName: "", language: "", stars: 0 });
 const getCoderPersonality = (d: any) => "Coder";
 const HEADER_GRADIENTS: any = { casual: "", networking: "" };
-"use client";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { useRef } from "react";
