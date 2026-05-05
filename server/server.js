@@ -19,6 +19,7 @@ const discoverRoutes = require("./routes/discover");
 const swipeRoutes = require("./routes/swipes");
 const matchRoutes = require("./routes/matches");
 const messageRoutes = require("./routes/messages");
+const hackathonRoutes = require("./routes/hackathons");
 
 const http = require("http");
 const { Server } = require("socket.io");
@@ -66,6 +67,7 @@ app.use("/api/discover", discoverRoutes);
 app.use("/api/swipes", swipeRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/hackathons", hackathonRoutes);
 
 app.get("/health", (req, res) => res.json({ status: "ok", app: "GitTogether API" }));
 

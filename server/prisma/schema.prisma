@@ -3,68 +3,71 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
-
 model User {
-  id             String   @id @default(cuid())
-  githubId       String   @unique
-  username       String   @unique
-  name           String?
-  avatarUrl      String?
-  bio            String?
-  location       String?
-  primaryStack   Json     @default("[]")
-  intentMode     String   @default("networking") // networking | collab | dating
-  hideLocation   Boolean  @default(false)
-  hideDating     Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  repositories   Repository[]
-  swipesGiven    Swipe[]      @relation("SwiperSwipes")
-  swipesReceived Swipe[]      @relation("TargetSwipes")
-  matchesAsUser1 Match[]      @relation("MatchUser1")
-  matchesAsUser2 Match[]      @relation("MatchUser2")
-  messages       Message[]
+  id                  String              @id @default(cuid())
+  username            String              @unique
+  email               String?             @unique
+  password            String
+  name                String?
+  bio                 String?
+  avatarUrl           String?
+  githubId            String?
+  location            String?
+  primaryStack        String[]
+  secondaryStack      String[]
+  interests           String[]
+  intentMode          String              @default("casual")
+  experienceLevel     String?
+  matchingScore       Int                 @default(0)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  repositories        Repository[]
+  swipesSent          Swipe[]             @relation("SwiperSwipes")
+  swipesReceived      Swipe[]             @relation("TargetSwipes")
+  matchesAsUser1      Match[]             @relation("MatchUser1")
+  matchesAsUser2      Match[]             @relation("MatchUser2")
+  messages            Message[]
+  hackathonInterests  HackathonInterest[]
+  hackathonSwipes     HackathonSwipe[]
 }
 
 model Repository {
-  id       String  @id @default(cuid())
-  userId   String
-  repoName String
-  language String?
-  stars    Int     @default(0)
-  forks    Int     @default(0)
-  topics   Json    @default("[]")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  url         String
+  stars       Int      @default(0)
+  language    String?
+  topics      String[]
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Swipe {
   id        String   @id @default(cuid())
   swiperId  String
   targetId  String
-  swipeType String   // like | pass | superlike
+  swipeType String // like | pass | superlike
   createdAt DateTime @default(now())
-
-  swiper User @relation("SwiperSwipes", fields: [swiperId], references: [id], onDelete: Cascade)
-  target User @relation("TargetSwipes", fields: [targetId], references: [id], onDelete: Cascade)
+  swiper    User     @relation("SwiperSwipes", fields: [swiperId], references: [id], onDelete: Cascade)
+  target    User     @relation("TargetSwipes", fields: [targetId], references: [id], onDelete: Cascade)
 
   @@unique([swiperId, targetId])
 }
 
 model Match {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   user1Id            String
   user2Id            String
-  compatibilityScore Float    @default(0)
-  createdAt          DateTime @default(now())
-
-  user1    User      @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
-  user2    User      @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
-  messages Message[]
+  compatibilityScore Int       @default(0)
+  status             String    @default("active")
+  createdAt          DateTime  @default(now())
+  user1              User      @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2              User      @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages           Message[]
 
   @@unique([user1Id, user2Id])
 }
@@ -75,7 +78,48 @@ model Message {
   senderId    String
   messageText String
   createdAt   DateTime @default(now())
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
 
-  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  sender User  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+model Hackathon {
+  id             String              @id @default(cuid())
+  name           String
+  description    String?
+  startDate      DateTime
+  endDate        DateTime
+  mode           String // online, in-person, hybrid
+  prizePool      String?
+  themes         String[]
+  techTags       String[]
+  organizer      String?
+  website        String?
+  imageUrl       String?
+  featured       Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  interests      HackathonInterest[]
+  swipes         HackathonSwipe[]
+}
+
+model HackathonInterest {
+  id          String   @id @default(cuid())
+  userId      String
+  hackathonId String
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hackathonId])
+}
+
+model HackathonSwipe {
+  id          String   @id @default(cuid())
+  userId      String
+  hackathonId String
+  swipeType   String   // like | pass
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hackathonId])
 }

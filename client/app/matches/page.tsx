@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 import Navbar from "@/components/shared/Navbar";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
@@ -10,16 +10,16 @@ import EmptyState from "@/components/shared/EmptyState";
 import MatchListItem from "@/components/matches/MatchListItem";
 import PendingLikeItem from "@/components/matches/PendingLikeItem";
 
-type Tab = "matches" | "networking";
+type Tab = "mutual" | "pending" | "hackathons";
 
 export default function MatchesPage() {
     const { status } = useSession();
     const router = useRouter();
-    const [tab, setTab] = useState<Tab>("matches");
     const [matches, setMatches] = useState<any[]>([]);
     const [pending, setPending] = useState<any[]>([]);
+    const [hackathons, setHackathons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<"mutual" | "pending">("mutual");
+    const [activeTab, setActiveTab] = useState<Tab>("mutual");
 
     useEffect(() => { if (status === "unauthenticated") router.replace("/"); }, [status, router]);
 
@@ -27,30 +27,19 @@ export default function MatchesPage() {
         if (status !== "authenticated") return;
         Promise.all([
             api.get(`/api/matches`),
-            api.get(`/api/swipes/pending`)
+            api.get(`/api/swipes/pending`),
+            api.get(`/api/hackathons/joined`)
         ])
-        .then(([matchesRes, pendingRes]) => {
+        .then(([matchesRes, pendingRes, hackathonsRes]) => {
             setMatches(matchesRes.data || []);
             setPending(pendingRes.data || []);
+            setHackathons(hackathonsRes.data || []);
         })
         .catch((err) => console.error(err))
         .finally(() => setLoading(false));
     }, [status]);
 
     if (loading) return <LoadingSpinner />;
-
-    const TAB_STYLES = (active: boolean, accent: string) => ({
-        padding: "0.55rem 1.25rem",
-        borderRadius: "0.65rem",
-        fontWeight: 700,
-        fontSize: "0.85rem",
-        cursor: "pointer",
-        border: "none",
-        background: active ? `${accent}18` : "transparent",
-        color: active ? accent : "#666",
-        borderBottom: active ? `2px solid ${accent}` : "2px solid transparent",
-        transition: "all 0.2s ease",
-    });
 
     return (
         <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg-base)" }}>
@@ -72,24 +61,11 @@ export default function MatchesPage() {
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
                         }}>
-                            Your GitMatches
+                            Connections & Events
                         </h1>
-                        {matches.length > 0 && (
-                            <span style={{
-                                padding: "0.15rem 0.6rem",
-                                borderRadius: "var(--radius-full)",
-                                background: "rgba(192, 38, 211, 0.12)",
-                                border: "1px solid var(--border-accent)",
-                                color: "var(--accent-light)",
-                                fontSize: "0.75rem",
-                                fontWeight: 700,
-                            }}>
-                                {matches.length}
-                            </span>
-                        )}
                     </div>
                     <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-                        {matches.length === 0 ? "No connections yet — go discover!" : `${matches.length} mutual connection${matches.length !== 1 ? "s" : ""} ready to chat`}
+                        Manage your matches and the hackathons you&apos;ve joined.
                     </p>
                 </motion.div>
 
@@ -101,82 +77,169 @@ export default function MatchesPage() {
                     border: "1px solid var(--border)",
                     borderRadius: "var(--radius-lg)",
                     padding: "0.3rem",
-                    marginBottom: "1.25rem",
+                    marginBottom: "1.5rem",
                     width: "fit-content",
                 }}>
-                    {(["mutual", "pending"] as const).map((tab) => (
+                    {[
+                        { id: "mutual", label: "Matches", color: "var(--accent)" },
+                        { id: "pending", label: "Likes", color: "#3B82F6" },
+                        { id: "hackathons", label: "Hackathons", color: "#fbbf24" },
+                    ].map((t) => (
                         <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
+                            key={t.id}
+                            onClick={() => setActiveTab(t.id as Tab)}
                             style={{
-                                padding: "0.45rem 1.1rem",
+                                padding: "0.5rem 1.2rem",
                                 borderRadius: "var(--radius-md)",
                                 border: "none",
                                 cursor: "pointer",
-                                fontSize: "0.825rem",
-                                fontWeight: 700,
+                                fontSize: "0.8rem",
+                                fontWeight: 800,
                                 fontFamily: "inherit",
                                 transition: "all 0.2s ease",
-                                background: activeTab === tab ? "linear-gradient(135deg, var(--accent), var(--accent-alt))" : "transparent",
-                                color: activeTab === tab ? "white" : "var(--text-secondary)",
-                                boxShadow: activeTab === tab ? "0 2px 12px var(--accent-glow)" : "none",
+                                background: activeTab === t.id ? (t.id === "hackathons" ? "linear-gradient(135deg, #fbbf24, #f59e0b)" : "linear-gradient(135deg, var(--accent), var(--accent-alt))") : "transparent",
+                                color: activeTab === t.id ? (t.id === "hackathons" ? "#000" : "white") : "var(--text-secondary)",
+                                boxShadow: activeTab === t.id ? "0 2px 12px rgba(0,0,0,0.2)" : "none",
                             }}
                         >
-                            {tab === "mutual" ? "Mutual Matches" : "Pending Likes"}
+                            {t.label}
                         </button>
                     ))}
                 </div>
 
-                {/* Match list */}
-                {activeTab === "mutual" ? (
-                    matches.length === 0 ? (
-                        <EmptyState
-                            emoji="🔭"
-                            title="No matches yet"
-                            subtitle="Start swiping on the Discover page to find your first match."
-                            actionLabel="Start Discovering"
-                            actionHref="/discover"
-                        />
-                    ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                            {matches.map((m, i) => (
-                                <MatchListItem
-                                    key={m.matchId}
-                                    matchId={m.matchId}
-                                    partner={m.partner}
-                                    lastMessage={m.lastMessage}
-                                    compatibilityScore={m.compatibilityScore}
-                                    index={i}
-                                    onUnmatch={() => setMatches(prev => prev.filter(item => item.matchId !== m.matchId))}
+                {/* Content Sections */}
+                <AnimatePresence mode="wait">
+                    {activeTab === "mutual" && (
+                        <motion.div
+                            key="mutual"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {matches.length === 0 ? (
+                                <EmptyState
+                                    emoji="🔭"
+                                    title="No matches yet"
+                                    subtitle="Start swiping on the Discover page to find your first match."
+                                    actionLabel="Start Discovering"
+                                    actionHref="/discover"
                                 />
-                            ))}
-                        </div>
-                    )
-                ) : (
-                    pending.length === 0 ? (
-                        <EmptyState
-                            emoji="⏳"
-                            title="No pending likes"
-                            subtitle="You haven't liked anyone recently. Go discover some amazing devs!"
-                            actionLabel="Go Discover"
-                            actionHref="/discover"
-                        />
-                    ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                            {pending.map((p, i) => (
-                                <PendingLikeItem
-                                    key={p.targetId}
-                                    targetId={p.targetId}
-                                    swipeType={p.swipeType}
-                                    likedAt={p.likedAt}
-                                    user={p.user}
-                                    index={i}
-                                    onUndo={(id) => setPending(prev => prev.filter(item => item.targetId !== id))}
+                            ) : (
+                                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                                    {matches.map((m, i) => (
+                                        <MatchListItem
+                                            key={m.matchId}
+                                            matchId={m.matchId}
+                                            partner={m.partner}
+                                            lastMessage={m.lastMessage}
+                                            compatibilityScore={m.compatibilityScore}
+                                            index={i}
+                                            onUnmatch={() => setMatches(prev => prev.filter(item => item.matchId !== m.matchId))}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {activeTab === "pending" && (
+                        <motion.div
+                            key="pending"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {pending.length === 0 ? (
+                                <EmptyState
+                                    emoji="⏳"
+                                    title="No pending likes"
+                                    subtitle="You haven't liked anyone recently. Go discover some amazing devs!"
+                                    actionLabel="Go Discover"
+                                    actionHref="/discover"
                                 />
-                            ))}
-                        </div>
-                    )
-                )}
+                            ) : (
+                                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                                    {pending.map((p, i) => (
+                                        <PendingLikeItem
+                                            key={p.targetId}
+                                            targetId={p.targetId}
+                                            swipeType={p.swipeType}
+                                            likedAt={p.likedAt}
+                                            user={p.user}
+                                            index={i}
+                                            onUndo={(id) => setPending(prev => prev.filter(item => item.targetId !== id))}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {activeTab === "hackathons" && (
+                        <motion.div
+                            key="hackathons"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {hackathons.length === 0 ? (
+                                <EmptyState
+                                    emoji="🏆"
+                                    title="No hackathons joined"
+                                    subtitle="You haven't joined any hackathons yet. Find one and start building!"
+                                    actionLabel="Browse Hackathons"
+                                    actionHref="/discover"
+                                />
+                            ) : (
+                                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                                    {hackathons.map((h, i) => (
+                                        <div key={h.id} style={{
+                                            padding: "1.25rem",
+                                            background: "var(--bg-surface)",
+                                            border: "1px solid var(--border)",
+                                            borderRadius: "1rem",
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center"
+                                        }}>
+                                            <div>
+                                                <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)" }}>{h.name}</h3>
+                                                <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
+                                                    {new Date(h.startDate).toLocaleDateString()} · {h.mode}
+                                                </p>
+                                                <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.6rem" }}>
+                                                    {h.themes.slice(0, 2).map((t: string) => (
+                                                        <span key={t} style={{ fontSize: "0.65rem", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", background: "rgba(251,191,36,0.1)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.2)" }}>
+                                                            {t}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => router.push(`/discover`)} // Future: /hackathons/[id] group chat
+                                                style={{
+                                                    padding: "0.5rem 1rem",
+                                                    borderRadius: "var(--radius-md)",
+                                                    border: "1px solid #fbbf24",
+                                                    background: "transparent",
+                                                    color: "#fbbf24",
+                                                    fontSize: "0.75rem",
+                                                    fontWeight: 700,
+                                                    cursor: "pointer"
+                                                }}
+                                            >
+                                                View Community
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </main>
         </div>
     );

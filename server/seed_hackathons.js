@@ -1,0 +1,237 @@
+// Seed script to populate hackathon data
+// Run: node seed_hackathons.js
+
+require("dotenv").config();
+const prisma = require("./lib/prisma");
+
+const hackathons = [
+    {
+        name: "HackIndia 2026",
+        description: "India's largest student hackathon — 48 hours to build, ship, and win. Open to all skill levels. Build projects in AI, Web3, or Climate Tech.",
+        startDate: new Date("2026-06-14T09:00:00Z"),
+        endDate: new Date("2026-06-16T18:00:00Z"),
+        mode: "hybrid",
+        prizePool: "₹5,00,000",
+        themes: ["AI/ML", "Web3", "Climate Tech"],
+        techTags: ["Python", "React", "TensorFlow", "Solidity"],
+        organizer: "HackIndia Foundation",
+        website: "https://hackindia.xyz",
+        featured: true,
+    },
+    {
+        name: "ETHIndia 2026",
+        description: "Asia's biggest Ethereum hackathon. Build decentralized apps, DeFi protocols, or Web3 infrastructure. Prizes from top crypto sponsors.",
+        startDate: new Date("2026-12-05T09:00:00Z"),
+        endDate: new Date("2026-12-07T18:00:00Z"),
+        mode: "in-person",
+        prizePool: "$100,000",
+        themes: ["Web3", "DeFi", "DAOs", "NFTs"],
+        techTags: ["Solidity", "TypeScript", "Rust", "Next.js"],
+        organizer: "Devfolio",
+        website: "https://ethindia.co",
+        featured: true,
+    },
+    {
+        name: "Solana Renaissance",
+        description: "Global Solana hackathon focusing on high-performance dApps. Track for DeFi, Payments, DePIN, and Gaming. Massive prize pool in USDC.",
+        startDate: new Date("2026-07-10T10:00:00Z"),
+        endDate: new Date("2026-08-20T23:59:00Z"),
+        mode: "online",
+        prizePool: "$1,000,000",
+        themes: ["Web3", "DePIN", "Gaming", "DeFi"],
+        techTags: ["Rust", "TypeScript", "React", "Anchor"],
+        organizer: "Solana Foundation",
+        website: "https://solana.com/hackathon",
+        featured: true,
+    },
+    {
+        name: "Microsoft Imagine Cup 2026",
+        description: "Global competition for student developers to tackle world's toughest problems using Microsoft Azure and AI. Mentorship and $100k grand prize.",
+        startDate: new Date("2026-08-01T00:00:00Z"),
+        endDate: new Date("2027-01-31T23:59:00Z"),
+        mode: "hybrid",
+        prizePool: "$100,000",
+        themes: ["AI", "Social Impact", "Healthcare", "Education"],
+        techTags: ["Azure", "C#", "Python", ".NET"],
+        organizer: "Microsoft",
+        website: "https://imaginecup.microsoft.com",
+        featured: true,
+    },
+    {
+        name: "Chainlink Constellation",
+        description: "Global hackathon for connected smart contracts. Build with Oracles, CCIP, and Data Feeds. Open to beginners and pro Web3 devs.",
+        startDate: new Date("2026-09-15T09:00:00Z"),
+        endDate: new Date("2026-10-30T18:00:00Z"),
+        mode: "online",
+        prizePool: "$250,000",
+        themes: ["DeFi", "Cross-Chain", "Real World Assets"],
+        techTags: ["Solidity", "Hardhat", "JavaScript", "Go"],
+        organizer: "Chainlink Labs",
+        website: "https://chain.link/hackathon",
+        featured: false,
+    },
+    {
+        name: "Google Girl Hackathon 2026",
+        description: "A program for women in engineering across India to showcase their coding skills and potentially land roles at Google.",
+        startDate: new Date("2026-06-20T10:00:00Z"),
+        endDate: new Date("2026-07-25T18:00:00Z"),
+        mode: "hybrid",
+        prizePool: "Mentorship & Internships",
+        themes: ["Coding", "Problem Solving", "Diversity"],
+        techTags: ["Java", "Python", "C++", "DSA"],
+        organizer: "Google India",
+        website: "https://buildyourfuture.withgoogle.com",
+        featured: true,
+    },
+    {
+        name: "Technex '26 (IIT BHU)",
+        description: "The annual techno-management fest of IIT BHU. Multiple coding contests, hackathons, and robotics challenges.",
+        startDate: new Date("2026-03-12T09:00:00Z"),
+        endDate: new Date("2026-03-15T18:00:00Z"),
+        mode: "in-person",
+        prizePool: "₹10,00,000",
+        themes: ["AI/ML", "Robotics", "FinTech"],
+        techTags: ["C++", "Python", "OpenCV", "TensorFlow"],
+        organizer: "IIT BHU Varanasi",
+        website: "https://technex.co.in",
+        featured: false,
+    },
+    {
+        name: "Kshitij 2026 (IIT KGP)",
+        description: "Asia's largest techno-management fest. Includes various coding marathons, AI challenges, and software development competitions.",
+        startDate: new Date("2026-01-20T09:00:00Z"),
+        endDate: new Date("2026-01-23T18:00:00Z"),
+        mode: "in-person",
+        prizePool: "₹20,00,000",
+        themes: ["AI", "Blockchain", "CyberSecurity"],
+        techTags: ["Python", "Java", "Solidity", "React"],
+        organizer: "IIT Kharagpur",
+        website: "https://ktj.in",
+        featured: false,
+    },
+    {
+        name: "HackOUT 2026",
+        description: "India's largest LGBTQ+ inclusive hackathon. Build for social impact and community empowerment in a supportive environment.",
+        startDate: new Date("2026-10-10T09:00:00Z"),
+        endDate: new Date("2026-10-12T18:00:00Z"),
+        mode: "in-person",
+        prizePool: "₹2,50,000",
+        themes: ["Social Impact", "Accessibility", "Community"],
+        techTags: ["JavaScript", "Python", "Flutter", "Node.js"],
+        organizer: "Headout & GitHub",
+        website: "https://hackout.devfolio.co",
+        featured: true,
+    },
+    {
+        name: "Unfold '26 (CoinDCX)",
+        description: "Building the future of Web3 and Crypto in India. Focus on DeFi, Bharat Track, and Consumer Apps.",
+        startDate: new Date("2026-11-20T10:00:00Z"),
+        endDate: new Date("2026-11-22T18:00:00Z"),
+        mode: "in-person",
+        prizePool: "₹25,00,000",
+        themes: ["Web3", "Crypto", "Consumer"],
+        techTags: ["Solidity", "Rust", "Next.js", "Ethers.js"],
+        organizer: "CoinDCX",
+        website: "https://unfold.devfolio.co",
+        featured: false,
+    },
+    {
+        name: "Junction 2026",
+        description: "Europe's leading hackathon held in Helsinki. 1500 participants, world-class mentors, and industry challenges.",
+        startDate: new Date("2026-11-07T09:00:00Z"),
+        endDate: new Date("2026-11-09T15:00:00Z"),
+        mode: "in-person",
+        prizePool: "€20,000",
+        themes: ["FinTech", "Sustainability", "Health"],
+        techTags: ["TypeScript", "Python", "Kotlin", "AWS"],
+        organizer: "Junction",
+        website: "https://hackjunction.com",
+        featured: false,
+    },
+    {
+        name: "Buildspace S6",
+        description: "Not your typical hackathon — a 6-week builder sprint. Ship a product, get users, win prizes. For serious builders only.",
+        startDate: new Date("2026-07-15T00:00:00Z"),
+        endDate: new Date("2026-08-25T23:59:00Z"),
+        mode: "online",
+        prizePool: "$100,000",
+        themes: ["SaaS", "Consumer", "Developer Tools"],
+        techTags: ["Next.js", "TypeScript", "Supabase", "Stripe"],
+        organizer: "Buildspace",
+        website: "https://buildspace.so",
+        featured: true,
+    },
+    {
+        name: "HackMIT 2026",
+        description: "MIT's annual hackathon. 1000+ hackers from around the world compete to build innovative projects in 24 hours.",
+        startDate: new Date("2026-09-20T10:00:00Z"),
+        endDate: new Date("2026-09-21T12:00:00Z"),
+        mode: "in-person",
+        prizePool: "$25,000",
+        themes: ["Health Tech", "EdTech", "Sustainability"],
+        techTags: ["Python", "JavaScript", "Swift", "Go"],
+        organizer: "MIT",
+        website: "https://hackmit.org",
+        featured: true,
+    },
+    {
+        name: "DotSlash 9.0 (SVNIT)",
+        description: "The biggest student-run hackathon in Surat. 30 hours of non-stop coding and fun at SVNIT campus.",
+        startDate: new Date("2026-02-14T10:00:00Z"),
+        endDate: new Date("2026-02-15T18:00:00Z"),
+        mode: "in-person",
+        prizePool: "₹2,00,000",
+        themes: ["Open Innovation", "AI", "Web3"],
+        techTags: ["React", "Node.js", "Python", "Tailwind"],
+        organizer: "SVNIT Surat",
+        website: "https://dotslash.devfolio.co",
+        featured: false,
+    },
+    {
+        name: "InOut 10.0",
+        description: "India's premier community hackathon. Bringing together designers and developers to create meaningful prototypes.",
+        startDate: new Date("2026-10-25T09:00:00Z"),
+        endDate: new Date("2026-10-27T18:00:00Z"),
+        mode: "in-person",
+        prizePool: "₹5,00,000",
+        themes: ["Design", "User Experience", "Product"],
+        techTags: ["Figma", "React", "TypeScript", "Python"],
+        organizer: "HackInout",
+        website: "https://hackinout.co",
+        featured: false,
+    },
+    {
+        name: "NASA Space Apps Challenge",
+        description: "International hackathon for coders, scientists, designers, and storytellers. Use NASA's open data to solve Earth and space challenges.",
+        startDate: new Date("2026-10-05T09:00:00Z"),
+        endDate: new Date("2026-10-06T23:59:00Z"),
+        mode: "hybrid",
+        prizePool: "Global Awards",
+        themes: ["Space", "Climate", "Data Science"],
+        techTags: ["Python", "JavaScript", "Data Analysis", "GIS"],
+        organizer: "NASA",
+        website: "https://spaceappschallenge.org",
+        featured: true,
+    }
+];
+
+async function seed() {
+    console.log("🌱 Cleaning existing hackathons...");
+    await prisma.hackathonInterest.deleteMany({});
+    await prisma.hackathon.deleteMany({});
+    
+    console.log("🌱 Seeding 16 fresh hackathons...\n");
+
+    for (const h of hackathons) {
+        const created = await prisma.hackathon.create({ data: h });
+        console.log(`  ✅ ${created.name} (${created.id})`);
+    }
+
+    console.log(`\n🎉 Done! Seeded ${hackathons.length} hackathons.`);
+    process.exit(0);
+}
+
+seed().catch((err) => {
+    console.error("❌ Seed failed:", err);
+    process.exit(1);
+});
