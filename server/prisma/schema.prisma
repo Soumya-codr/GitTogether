@@ -14,7 +14,7 @@ model User {
   name                String?
   bio                 String?
   avatarUrl           String?
-  githubId            String?
+  githubId            String              @unique
   location            String?
   primaryStack        String[]
   secondaryStack      String[]

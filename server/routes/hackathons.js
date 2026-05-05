@@ -136,4 +136,31 @@ router.get("/:id/partners", requireAuth, async (req, res) => {
     }
 });
 
+// DELETE /api/hackathons/:id/leave — leave a hackathon
+router.delete("/:id/leave", requireAuth, async (req, res) => {
+    try {
+        const hackathonId = req.params.id;
+
+        await prisma.hackathonInterest.deleteMany({
+            where: {
+                userId: req.userId, 
+                hackathonId: hackathonId
+            }
+        });
+
+        // Also delete the swipe so it returns to the discovery deck
+        await prisma.hackathonSwipe.deleteMany({
+            where: {
+                userId: req.userId, 
+                hackathonId: hackathonId
+            }
+        });
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("❌ Error leaving hackathon:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

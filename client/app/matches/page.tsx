@@ -39,6 +39,15 @@ export default function MatchesPage() {
         .finally(() => setLoading(false));
     }, [status]);
 
+    const handleLeaveHackathon = async (hackathonId: string) => {
+        try {
+            await api.delete(`/api/hackathons/${hackathonId}/leave`);
+            setHackathons(prev => prev.filter(h => h.id !== hackathonId));
+        } catch (err) {
+            console.error("Failed to leave hackathon", err);
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
@@ -218,21 +227,38 @@ export default function MatchesPage() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <button 
-                                                onClick={() => router.push(`/discover`)} // Future: /hackathons/[id] group chat
-                                                style={{
-                                                    padding: "0.5rem 1rem",
-                                                    borderRadius: "var(--radius-md)",
-                                                    border: "1px solid #fbbf24",
-                                                    background: "transparent",
-                                                    color: "#fbbf24",
-                                                    fontSize: "0.75rem",
-                                                    fontWeight: 700,
-                                                    cursor: "pointer"
-                                                }}
-                                            >
-                                                View Community
-                                            </button>
+                                            <div style={{ display: "flex", gap: "0.5rem", flexDirection: "column" }}>
+                                                <button 
+                                                    onClick={() => router.push(`/discover`)} // Future: /hackathons/[id] group chat
+                                                    style={{
+                                                        padding: "0.5rem 1rem",
+                                                        borderRadius: "var(--radius-md)",
+                                                        border: "1px solid #fbbf24",
+                                                        background: "transparent",
+                                                        color: "#fbbf24",
+                                                        fontSize: "0.75rem",
+                                                        fontWeight: 700,
+                                                        cursor: "pointer"
+                                                    }}
+                                                >
+                                                    View Community
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleLeaveHackathon(h.id)}
+                                                    style={{
+                                                        padding: "0.5rem 1rem",
+                                                        borderRadius: "var(--radius-md)",
+                                                        border: "1px solid rgba(239, 68, 68, 0.4)",
+                                                        background: "transparent",
+                                                        color: "#ef4444",
+                                                        fontSize: "0.75rem",
+                                                        fontWeight: 700,
+                                                        cursor: "pointer"
+                                                    }}
+                                                >
+                                                    Leave Team
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
