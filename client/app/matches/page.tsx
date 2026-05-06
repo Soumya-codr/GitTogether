@@ -10,7 +10,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import MatchListItem from "@/components/matches/MatchListItem";
 import PendingLikeItem from "@/components/matches/PendingLikeItem";
 
-type Tab = "mutual" | "pending" | "hackathons";
+type Tab = "mutual" | "pending" | "hackathons" | "projects";
 
 export default function MatchesPage() {
     const { status } = useSession();
@@ -18,6 +18,7 @@ export default function MatchesPage() {
     const [matches, setMatches] = useState<any[]>([]);
     const [pending, setPending] = useState<any[]>([]);
     const [hackathons, setHackathons] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<Tab>("mutual");
 
@@ -28,12 +29,14 @@ export default function MatchesPage() {
         Promise.all([
             api.get(`/api/matches`),
             api.get(`/api/swipes/pending`),
-            api.get(`/api/hackathons/joined`)
+            api.get(`/api/hackathons/joined`),
+            api.get(`/api/repos/joined`)
         ])
-        .then(([matchesRes, pendingRes, hackathonsRes]) => {
+        .then(([matchesRes, pendingRes, hackathonsRes, reposRes]) => {
             setMatches(matchesRes.data || []);
             setPending(pendingRes.data || []);
             setHackathons(hackathonsRes.data || []);
+            setProjects(reposRes.data || []);
         })
         .catch((err) => console.error(err))
         .finally(() => setLoading(false));
@@ -93,6 +96,7 @@ export default function MatchesPage() {
                         { id: "mutual", label: "Matches", color: "var(--accent)" },
                         { id: "pending", label: "Likes", color: "#3B82F6" },
                         { id: "hackathons", label: "Hackathons", color: "#fbbf24" },
+                        { id: "projects", label: "Projects 🚀", color: "#a78bfa" },
                     ].map((t) => (
                         <button
                             key={t.id}
@@ -106,7 +110,7 @@ export default function MatchesPage() {
                                 fontWeight: 800,
                                 fontFamily: "inherit",
                                 transition: "all 0.2s ease",
-                                background: activeTab === t.id ? (t.id === "hackathons" ? "linear-gradient(135deg, #fbbf24, #f59e0b)" : "linear-gradient(135deg, var(--accent), var(--accent-alt))") : "transparent",
+                                background: activeTab === t.id ? (t.id === "hackathons" ? "linear-gradient(135deg, #fbbf24, #f59e0b)" : t.id === "projects" ? "linear-gradient(135deg, #a78bfa, #8b5cf6)" : "linear-gradient(135deg, var(--accent), var(--accent-alt))") : "transparent",
                                 color: activeTab === t.id ? (t.id === "hackathons" ? "#000" : "white") : "var(--text-secondary)",
                                 boxShadow: activeTab === t.id ? "0 2px 12px rgba(0,0,0,0.2)" : "none",
                             }}
@@ -257,6 +261,76 @@ export default function MatchesPage() {
                                                     }}
                                                 >
                                                     Leave Team
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {activeTab === "projects" && (
+                        <motion.div
+                            key="projects"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {projects.length === 0 ? (
+                                <EmptyState
+                                    emoji="🚀"
+                                    title="No projects joined"
+                                    subtitle="You haven't swiped right on any projects yet. Start discovering repositories to collaborate on!"
+                                    actionLabel="Find Projects"
+                                    actionHref="/discover"
+                                />
+                            ) : (
+                                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                                    {projects.map((p, i) => (
+                                        <div key={p.id} style={{
+                                            padding: "1.25rem",
+                                            background: "var(--bg-surface)",
+                                            border: "1px solid var(--border)",
+                                            borderRadius: "1rem",
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center"
+                                        }}>
+                                            <div>
+                                                <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                                                    <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "0.4rem", transition: "color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.color = "var(--accent)"} onMouseOut={(e) => e.currentTarget.style.color = "var(--text-primary)"}>
+                                                        {p.name}
+                                                        <span style={{ fontSize: "0.9rem", opacity: 0.6 }}>↗</span>
+                                                    </h3>
+                                                </a>
+                                                <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
+                                                    {p.language || "Unknown"} · {p.stars} stars
+                                                </p>
+                                                <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.6rem" }}>
+                                                    {p.topics.slice(0, 3).map((t: string) => (
+                                                        <span key={t} style={{ fontSize: "0.65rem", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", background: "rgba(167,139,250,0.1)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.2)" }}>
+                                                            {t}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div style={{ display: "flex", gap: "0.5rem", flexDirection: "column" }}>
+                                                <button 
+                                                    onClick={() => router.push(`/projects/${p.id}/chat`)}
+                                                    style={{
+                                                        padding: "0.5rem 1rem",
+                                                        borderRadius: "var(--radius-md)",
+                                                        border: "1px solid #a78bfa",
+                                                        background: "transparent",
+                                                        color: "#a78bfa",
+                                                        fontSize: "0.75rem",
+                                                        fontWeight: 700,
+                                                        cursor: "pointer"
+                                                    }}
+                                                >
+                                                    Collab Chat
                                                 </button>
                                             </div>
                                         </div>
