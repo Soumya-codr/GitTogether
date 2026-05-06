@@ -32,6 +32,7 @@ model User {
   messages            Message[]
   hackathonInterests  HackathonInterest[]
   hackathonSwipes     HackathonSwipe[]
+  hackathonMessages   HackathonMessage[]
 }
 
 model Repository {
@@ -99,6 +100,7 @@ model Hackathon {
   createdAt      DateTime            @default(now())
   interests      HackathonInterest[]
   swipes         HackathonSwipe[]
+  messages       HackathonMessage[]
 }
 
 model HackathonInterest {
@@ -122,4 +124,14 @@ model HackathonSwipe {
   hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, hackathonId])
+}
+
+model HackathonMessage {
+  id          String    @id @default(cuid())
+  hackathonId String
+  senderId    String
+  messageText String
+  createdAt   DateTime  @default(now())
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  sender      User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }

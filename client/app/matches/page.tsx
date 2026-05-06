@@ -229,7 +229,7 @@ export default function MatchesPage() {
                                             </div>
                                             <div style={{ display: "flex", gap: "0.5rem", flexDirection: "column" }}>
                                                 <button 
-                                                    onClick={() => router.push(`/discover`)} // Future: /hackathons/[id] group chat
+                                                    onClick={() => router.push(`/hackathons/${h.id}/chat`)}
                                                     style={{
                                                         padding: "0.5rem 1rem",
                                                         borderRadius: "var(--radius-md)",

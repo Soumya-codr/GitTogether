@@ -163,4 +163,60 @@ router.delete("/:id/leave", requireAuth, async (req, res) => {
     }
 });
 
+// GET /api/hackathons/:id/messages — get community chat history
+router.get("/:id/messages", requireAuth, async (req, res) => {
+    try {
+        const hackathonId = req.params.id;
+
+        // Verify the user has joined this hackathon
+        const interest = await prisma.hackathonInterest.findFirst({
+            where: { userId: req.userId, hackathonId: hackathonId }
+        });
+        if (!interest) return res.status(403).json({ error: "Not authorized. Join the hackathon first." });
+
+        const messages = await prisma.hackathonMessage.findMany({
+            where: { hackathonId },
+            include: { sender: { select: { id: true, username: true, avatarUrl: true } } },
+            orderBy: { createdAt: "asc" },
+        });
+        
+        res.json(messages);
+    } catch (err) {
+        console.error("❌ Error fetching hackathon messages:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/hackathons/:id/messages — send a message to community chat
+router.post("/:id/messages", requireAuth, async (req, res) => {
+    try {
+        const hackathonId = req.params.id;
+        const { messageText } = req.body;
+
+        if (!messageText?.trim()) return res.status(400).json({ error: "Message cannot be empty" });
+
+        // Verify the user has joined this hackathon
+        const interest = await prisma.hackathonInterest.findFirst({
+            where: { userId: req.userId, hackathonId: hackathonId }
+        });
+        if (!interest) return res.status(403).json({ error: "Not authorized. Join the hackathon first." });
+
+        const message = await prisma.hackathonMessage.create({
+            data: { hackathonId, senderId: req.userId, messageText: messageText.trim() },
+            include: { sender: { select: { id: true, username: true, avatarUrl: true } } },
+        });
+
+        // Emit to socket room for hackathon group chat
+        const io = req.app.get("io");
+        const roomId = `hackathon-${hackathonId}`;
+        console.log(`📡 Emitting 'new-message' to hackathon room ${roomId}: "${message.messageText.substring(0, 20)}..."`);
+        io.to(roomId).emit("new-message", message);
+
+        res.json(message);
+    } catch (err) {
+        console.error("❌ Error sending hackathon message:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
