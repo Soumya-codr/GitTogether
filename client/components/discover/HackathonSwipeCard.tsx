@@ -19,6 +19,7 @@ interface Hackathon {
     featured: boolean;
     interestedCount: number;
     hasJoined: boolean;
+    participants?: { id: string; username: string; avatarUrl: string | null }[];
 }
 
 interface HackathonSwipeCardProps {
@@ -50,11 +51,11 @@ export function HackathonSwipeCard({ hackathon, onSwipe, isTop, stackIndex }: Ha
             const type = e.detail.type;
             if (type === 'join') {
                 setSwipeDirection("join");
-                controls.start({ x: 500, opacity: 0, rotate: 25, transition: { duration: 0.5 } })
+                controls.start({ x: 500, opacity: 0, rotate: 25, transition: { duration: 0.4, ease: "easeOut" } })
                     .then(() => onSwipe(hackathon.id, "join"));
             } else if (type === 'pass') {
                 setSwipeDirection("pass");
-                controls.start({ x: -500, opacity: 0, rotate: -25, transition: { duration: 0.5 } })
+                controls.start({ x: -500, opacity: 0, rotate: -25, transition: { duration: 0.4, ease: "easeOut" } })
                     .then(() => onSwipe(hackathon.id, "pass"));
             }
         };
@@ -66,12 +67,12 @@ export function HackathonSwipeCard({ hackathon, onSwipe, isTop, stackIndex }: Ha
     const handleDragEnd = (_: any, info: any) => {
         if (info.offset.x > 100) {
             setSwipeDirection("join");
-            controls.start({ x: 500, opacity: 0 }).then(() => onSwipe(hackathon.id, "join"));
+            controls.start({ x: 500, opacity: 0, transition: { duration: 0.4, ease: "easeOut" } }).then(() => onSwipe(hackathon.id, "join"));
         } else if (info.offset.x < -100) {
             setSwipeDirection("pass");
-            controls.start({ x: -500, opacity: 0 }).then(() => onSwipe(hackathon.id, "pass"));
+            controls.start({ x: -500, opacity: 0, transition: { duration: 0.4, ease: "easeOut" } }).then(() => onSwipe(hackathon.id, "pass"));
         } else {
-            controls.start({ x: 0, rotate: 0 });
+            controls.start({ x: 0, rotate: 0, transition: { type: "spring", stiffness: 300, damping: 25 } });
             setSwipeDirection(null);
         }
     };
@@ -179,10 +180,35 @@ export function HackathonSwipeCard({ hackathon, onSwipe, isTop, stackIndex }: Ha
                             <span>📅</span>
                             <span>{formatDate(hackathon.startDate)} - {formatDate(hackathon.endDate)}</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--text-muted)", fontSize: "0.8rem" }}>
-                            <span>👥</span>
-                            <span>{hackathon.interestedCount} devs in community</span>
-                        </div>
+                        {hackathon.participants && hackathon.participants.length > 0 ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                <div style={{ display: "flex", marginLeft: "0.5rem" }}>
+                                    {hackathon.participants.map((p, idx) => (
+                                        <img 
+                                            key={p.id}
+                                            src={p.avatarUrl || `https://ui-avatars.com/api/?name=${p.username}&background=fbbf24&color=000&size=100&bold=true`}
+                                            alt={p.username}
+                                            title={p.username}
+                                            style={{
+                                                width: "24px", height: "24px", borderRadius: "50%",
+                                                objectFit: "cover",
+                                                border: "2px solid var(--bg-surface)",
+                                                marginLeft: "-0.5rem",
+                                                zIndex: 10 - idx
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                                <span style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>
+                                    {hackathon.interestedCount} devs in community
+                                </span>
+                            </div>
+                        ) : (
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--text-muted)", fontSize: "0.8rem" }}>
+                                <span>👥</span>
+                                <span>{hackathon.interestedCount} devs in community</span>
+                            </div>
+                        )}
                         
                         {hackathon.website && (
                             <a 

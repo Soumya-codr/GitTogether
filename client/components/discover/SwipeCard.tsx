@@ -250,13 +250,13 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
     async function handleDragEnd(_: unknown, info: { offset: { x: number } }) {
         const threshold = 110;
         if (info.offset.x > threshold) {
-            await animate(x, 650, { duration: 0.28 });
+            await animate(x, 650, { duration: 0.35, ease: "easeOut" });
             onSwipe(developer.id, "like");
         } else if (info.offset.x < -threshold) {
-            await animate(x, -650, { duration: 0.28 });
+            await animate(x, -650, { duration: 0.35, ease: "easeOut" });
             onSwipe(developer.id, "pass");
         } else {
-            animate(x, 0, { type: "spring", stiffness: 350, damping: 28 });
+            animate(x, 0, { type: "spring", stiffness: 300, damping: 25 });
         }
     }
 

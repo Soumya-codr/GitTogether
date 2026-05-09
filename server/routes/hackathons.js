@@ -19,16 +19,31 @@ router.get("/", requireAuth, async (req, res) => {
                 id: { notIn: swipedIds } // EXCLUDE ALREADY SWIPED
             },
             include: { 
-                _count: { select: { interests: true } } 
+                _count: { select: { interests: true } },
+                interests: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                avatarUrl: true
+                            }
+                        }
+                    },
+                    take: 5
+                }
             },
             orderBy: { featured: "desc" }
         });
 
         // Map to include a simple interestedCount
-        const formatted = hackathons.map(h => ({
-            ...h,
-            interestedCount: h._count.interests
-        }));
+        const formatted = hackathons.map(h => {
+            const copy = { ...h };
+            copy.interestedCount = h._count.interests;
+            copy.participants = h.interests ? h.interests.map(int => int.user) : [];
+            delete copy.interests;
+            return copy;
+        });
 
         res.json(formatted);
     } catch (err) {
@@ -42,9 +57,31 @@ router.get("/joined", requireAuth, async (req, res) => {
     try {
         const interests = await prisma.hackathonInterest.findMany({
             where: { userId: req.userId },
-            include: { hackathon: true }
+            include: { 
+                hackathon: {
+                    include: {
+                        interests: {
+                            include: {
+                                user: {
+                                    select: {
+                                        id: true,
+                                        username: true,
+                                        avatarUrl: true
+                                    }
+                                }
+                            },
+                            take: 5
+                        }
+                    }
+                } 
+            }
         });
-        const hackathons = interests.map(i => i.hackathon);
+        const hackathons = interests.map(i => {
+            const h = i.hackathon;
+            h.participants = h.interests ? h.interests.map(int => int.user) : [];
+            delete h.interests;
+            return h;
+        });
         res.json(hackathons);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -132,6 +169,34 @@ router.get("/:id/partners", requireAuth, async (req, res) => {
         res.json({ partners });
     } catch (err) {
         console.error("❌ Error fetching partners:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /api/hackathons/:id/leave — leave a joined hackathon
+router.delete("/:id/leave", requireAuth, async (req, res) => {
+    try {
+        const hackathonId = req.params.id;
+
+        // 1. Delete Interest
+        await prisma.hackathonInterest.deleteMany({
+            where: {
+                userId: req.userId,
+                hackathonId: hackathonId,
+            },
+        });
+
+        // 2. Delete Swipe so it shows up in feed again
+        await prisma.hackathonSwipe.deleteMany({
+            where: {
+                userId: req.userId,
+                hackathonId: hackathonId,
+            },
+        });
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("❌ Error leaving hackathon:", err.message);
         res.status(500).json({ error: err.message });
     }
 });

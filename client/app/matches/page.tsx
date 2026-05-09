@@ -39,6 +39,15 @@ export default function MatchesPage() {
         .finally(() => setLoading(false));
     }, [status]);
 
+    const handleLeaveHackathon = async (id: string) => {
+        try {
+            await api.delete(`/api/hackathons/${id}/leave`);
+            setHackathons(prev => prev.filter(h => h.id !== id));
+        } catch (err) {
+            console.error("Failed to leave hackathon", err);
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
@@ -217,22 +226,67 @@ export default function MatchesPage() {
                                                         </span>
                                                     ))}
                                                 </div>
+
+                                                {h.participants && h.participants.length > 0 && (
+                                                    <div style={{ display: "flex", alignItems: "center", marginTop: "1rem", gap: "0.5rem" }}>
+                                                        <div style={{ display: "flex", marginLeft: "0.5rem" }}>
+                                                            {h.participants.map((p: any, idx: number) => (
+                                                                <img 
+                                                                    key={p.id}
+                                                                    src={p.avatarUrl || `https://ui-avatars.com/api/?name=${p.username}&background=fbbf24&color=000&size=100&bold=true`}
+                                                                    alt={p.username}
+                                                                    title={p.username}
+                                                                    style={{
+                                                                        width: "28px", height: "28px", borderRadius: "50%",
+                                                                        objectFit: "cover",
+                                                                        border: "2px solid var(--bg-surface)",
+                                                                        marginLeft: "-0.5rem",
+                                                                        zIndex: 10 - idx,
+                                                                        cursor: "pointer"
+                                                                    }}
+                                                                    onClick={() => router.push(`/discover`)} // Future: user profile
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                                                            {h.participants.length} {h.participants.length === 1 ? 'dev' : 'devs'} joined
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <button 
-                                                onClick={() => router.push(`/discover`)} // Future: /hackathons/[id] group chat
-                                                style={{
-                                                    padding: "0.5rem 1rem",
-                                                    borderRadius: "var(--radius-md)",
-                                                    border: "1px solid #fbbf24",
-                                                    background: "transparent",
-                                                    color: "#fbbf24",
-                                                    fontSize: "0.75rem",
-                                                    fontWeight: 700,
-                                                    cursor: "pointer"
-                                                }}
-                                            >
-                                                View Community
-                                            </button>
+                                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                                                <button 
+                                                    onClick={() => router.push(`/discover`)} // Future: /hackathons/[id] group chat
+                                                    style={{
+                                                        padding: "0.5rem 1rem",
+                                                        borderRadius: "var(--radius-md)",
+                                                        border: "1px solid #fbbf24",
+                                                        background: "transparent",
+                                                        color: "#fbbf24",
+                                                        fontSize: "0.75rem",
+                                                        fontWeight: 700,
+                                                        cursor: "pointer"
+                                                    }}
+                                                >
+                                                    View Community
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleLeaveHackathon(h.id)}
+                                                    style={{
+                                                        padding: "0.5rem 1rem",
+                                                        borderRadius: "var(--radius-md)",
+                                                        border: "1px solid rgba(239, 68, 68, 0.5)",
+                                                        background: "rgba(239, 68, 68, 0.05)",
+                                                        color: "#ef4444",
+                                                        fontSize: "0.75rem",
+                                                        fontWeight: 700,
+                                                        cursor: "pointer",
+                                                        transition: "all 0.2s"
+                                                    }}
+                                                >
+                                                    Leave
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
