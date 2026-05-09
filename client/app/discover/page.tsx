@@ -13,6 +13,7 @@ import MatchPopup from "@/components/discover/MatchPopup";
 import IntentBanner from "@/components/discover/IntentBanner";
 import NetworkingFeed from "@/components/discover/NetworkingFeed";
 import HackathonFeed from "@/components/discover/HackathonFeed";
+import RepoFeed from "@/components/discover/RepoFeed";
 import { INTENT_CONFIGS, DEFAULT_INTENT } from "@/lib/intentConfig";
 
 export default function DiscoverPage() {
@@ -41,6 +42,8 @@ export default function DiscoverPage() {
     const fetchDeck = useCallback(async () => {
         setLoading(true);
         try {
+            // Don't fetch the regular user deck if we are looking for repos
+            if (intentMode === "collab") return;
             const res = await api.get(`/api/discover?intent=${intentMode}`);
             setDeck(res.data);
         } catch {}
@@ -171,6 +174,23 @@ export default function DiscoverPage() {
                 /* Step 2: Hackathon Partner Matching (loading state) */
                 ) : hackathonLoading ? (
                     <LoadingSpinner />
+
+                /* Repo Collaboration Flow */
+                ) : intentMode === "collab" ? (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem", width: "100%" }}>
+                        <RepoFeed />
+                        <ActionButtons
+                            onPass={() => {
+                                window.dispatchEvent(new CustomEvent('repo-swipe', { detail: { type: 'pass' } }));
+                            }}
+                            onLike={() => {
+                                window.dispatchEvent(new CustomEvent('repo-swipe', { detail: { type: 'like' } }));
+                            }}
+                            accentColor="#a78bfa"
+                            likeLabel="BUILD"
+                            onSuperLike={() => {}}
+                        />
+                    </div>
 
                 /* Normal or Hackathon partner swipe flow */
                 ) : activeDeck.length === 0 ? (

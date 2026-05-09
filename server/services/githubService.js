@@ -45,10 +45,11 @@ async function fetchReposAndStack(username, accessToken) {
                 langCount[r.language] = (langCount[r.language] || 0) + 1;
             }
             return {
-                repoName: r.name,
+                name: r.name,
+                description: r.description || null,
+                url: r.html_url || "",
                 language: r.language || "Unknown",
                 stars: r.stargazers_count,
-                forks: r.forks_count,
                 topics: r.topics || [],
             };
         });

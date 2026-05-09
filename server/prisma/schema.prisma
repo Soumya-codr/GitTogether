@@ -32,6 +32,9 @@ model User {
   messages            Message[]
   hackathonInterests  HackathonInterest[]
   hackathonSwipes     HackathonSwipe[]
+  hackathonMessages   HackathonMessage[]
+  repoSwipes          RepoSwipe[]
+  repoMessages        RepoMessage[]
 }
 
 model Repository {
@@ -44,6 +47,8 @@ model Repository {
   language    String?
   topics      String[]
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  swipes      RepoSwipe[]
+  messages    RepoMessage[]
 }
 
 model Swipe {
@@ -99,6 +104,7 @@ model Hackathon {
   createdAt      DateTime            @default(now())
   interests      HackathonInterest[]
   swipes         HackathonSwipe[]
+  messages       HackathonMessage[]
 }
 
 model HackathonInterest {
@@ -122,4 +128,36 @@ model HackathonSwipe {
   hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, hackathonId])
+}
+
+model HackathonMessage {
+  id          String    @id @default(cuid())
+  hackathonId String
+  senderId    String
+  messageText String
+  createdAt   DateTime  @default(now())
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  sender      User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model RepoSwipe {
+  id        String   @id @default(cuid())
+  userId    String
+  repoId    String
+  swipeType String   // like | pass
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repo      Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, repoId])
+}
+
+model RepoMessage {
+  id          String   @id @default(cuid())
+  repoId      String
+  senderId    String
+  messageText String
+  createdAt   DateTime @default(now())
+  repo        Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }

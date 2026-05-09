@@ -19,31 +19,16 @@ router.get("/", requireAuth, async (req, res) => {
                 id: { notIn: swipedIds } // EXCLUDE ALREADY SWIPED
             },
             include: { 
-                _count: { select: { interests: true } },
-                interests: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                username: true,
-                                avatarUrl: true
-                            }
-                        }
-                    },
-                    take: 5
-                }
+                _count: { select: { interests: true } } 
             },
             orderBy: { featured: "desc" }
         });
 
         // Map to include a simple interestedCount
-        const formatted = hackathons.map(h => {
-            const copy = { ...h };
-            copy.interestedCount = h._count.interests;
-            copy.participants = h.interests ? h.interests.map(int => int.user) : [];
-            delete copy.interests;
-            return copy;
-        });
+        const formatted = hackathons.map(h => ({
+            ...h,
+            interestedCount: h._count.interests
+        }));
 
         res.json(formatted);
     } catch (err) {
@@ -57,31 +42,9 @@ router.get("/joined", requireAuth, async (req, res) => {
     try {
         const interests = await prisma.hackathonInterest.findMany({
             where: { userId: req.userId },
-            include: { 
-                hackathon: {
-                    include: {
-                        interests: {
-                            include: {
-                                user: {
-                                    select: {
-                                        id: true,
-                                        username: true,
-                                        avatarUrl: true
-                                    }
-                                }
-                            },
-                            take: 5
-                        }
-                    }
-                } 
-            }
+            include: { hackathon: true }
         });
-        const hackathons = interests.map(i => {
-            const h = i.hackathon;
-            h.participants = h.interests ? h.interests.map(int => int.user) : [];
-            delete h.interests;
-            return h;
-        });
+        const hackathons = interests.map(i => i.hackathon);
         res.json(hackathons);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -173,30 +136,85 @@ router.get("/:id/partners", requireAuth, async (req, res) => {
     }
 });
 
-// DELETE /api/hackathons/:id/leave — leave a joined hackathon
+// DELETE /api/hackathons/:id/leave — leave a hackathon
 router.delete("/:id/leave", requireAuth, async (req, res) => {
     try {
         const hackathonId = req.params.id;
 
-        // 1. Delete Interest
         await prisma.hackathonInterest.deleteMany({
             where: {
-                userId: req.userId,
-                hackathonId: hackathonId,
-            },
+                userId: req.userId, 
+                hackathonId: hackathonId
+            }
         });
 
-        // 2. Delete Swipe so it shows up in feed again
+        // Also delete the swipe so it returns to the discovery deck
         await prisma.hackathonSwipe.deleteMany({
             where: {
-                userId: req.userId,
-                hackathonId: hackathonId,
-            },
+                userId: req.userId, 
+                hackathonId: hackathonId
+            }
         });
 
         res.json({ success: true });
     } catch (err) {
         console.error("❌ Error leaving hackathon:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/hackathons/:id/messages — get community chat history
+router.get("/:id/messages", requireAuth, async (req, res) => {
+    try {
+        const hackathonId = req.params.id;
+
+        // Verify the user has joined this hackathon
+        const interest = await prisma.hackathonInterest.findFirst({
+            where: { userId: req.userId, hackathonId: hackathonId }
+        });
+        if (!interest) return res.status(403).json({ error: "Not authorized. Join the hackathon first." });
+
+        const messages = await prisma.hackathonMessage.findMany({
+            where: { hackathonId },
+            include: { sender: { select: { id: true, username: true, avatarUrl: true } } },
+            orderBy: { createdAt: "asc" },
+        });
+        
+        res.json(messages);
+    } catch (err) {
+        console.error("❌ Error fetching hackathon messages:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/hackathons/:id/messages — send a message to community chat
+router.post("/:id/messages", requireAuth, async (req, res) => {
+    try {
+        const hackathonId = req.params.id;
+        const { messageText } = req.body;
+
+        if (!messageText?.trim()) return res.status(400).json({ error: "Message cannot be empty" });
+
+        // Verify the user has joined this hackathon
+        const interest = await prisma.hackathonInterest.findFirst({
+            where: { userId: req.userId, hackathonId: hackathonId }
+        });
+        if (!interest) return res.status(403).json({ error: "Not authorized. Join the hackathon first." });
+
+        const message = await prisma.hackathonMessage.create({
+            data: { hackathonId, senderId: req.userId, messageText: messageText.trim() },
+            include: { sender: { select: { id: true, username: true, avatarUrl: true } } },
+        });
+
+        // Emit to socket room for hackathon group chat
+        const io = req.app.get("io");
+        const roomId = `hackathon-${hackathonId}`;
+        console.log(`📡 Emitting 'new-message' to hackathon room ${roomId}: "${message.messageText.substring(0, 20)}..."`);
+        io.to(roomId).emit("new-message", message);
+
+        res.json(message);
+    } catch (err) {
+        console.error("❌ Error sending hackathon message:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
