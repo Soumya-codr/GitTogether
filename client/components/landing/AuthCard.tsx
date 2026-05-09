@@ -70,61 +70,7 @@ export default function AuthCard() {
                 <ArrowRight size={16} style={{ marginLeft: "auto" }} />
             </motion.button>
 
-            {/* Divider */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "0.25rem 0" }}>
-                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>or</span>
-                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-            </div>
 
-            {/* Email toggle */}
-            {!showEmail ? (
-                <button
-                    onClick={() => setShowEmail(true)}
-                    className="gt-btn-ghost"
-                    style={{ fontSize: "0.875rem" }}
-                >
-                    <Mail size={16} />
-                    Continue with Email
-                </button>
-            ) : (
-                <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    transition={{ duration: 0.25 }}
-                    style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
-                >
-                    <input
-                        type="email"
-                        placeholder="Email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="gt-input"
-                    />
-                    <div style={{ position: "relative" }}>
-                        <input
-                            type={showPw ? "text" : "password"}
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="gt-input"
-                            style={{ paddingRight: "2.75rem" }}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPw(!showPw)}
-                            style={{
-                                position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)",
-                                background: "none", border: "none", cursor: "pointer",
-                                color: "var(--text-muted)", display: "flex", alignItems: "center",
-                            }}
-                        >
-                            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                    </div>
-                    <button className="gt-btn-primary">Sign In</button>
-                </motion.div>
-            )}
 
             {/* Terms */}
             <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", textAlign: "center", lineHeight: 1.5 }}>
