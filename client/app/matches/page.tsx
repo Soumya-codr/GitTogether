@@ -51,6 +51,16 @@ export default function MatchesPage() {
         }
     };
 
+    const handleRemoveProject = async (repoId: string) => {
+        try {
+            await api.delete(`/api/repos/${repoId}/swipe`);
+            setProjects(prev => prev.filter(p => p.id !== repoId));
+            localStorage.setItem("repos-need-refetch", "1");
+        } catch (err) {
+            console.error("Failed to remove project", err);
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
@@ -331,6 +341,21 @@ export default function MatchesPage() {
                                                     }}
                                                 >
                                                     Collab Chat
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleRemoveProject(p.id)}
+                                                    style={{
+                                                        padding: "0.5rem 1rem",
+                                                        borderRadius: "var(--radius-md)",
+                                                        border: "1px solid rgba(239,68,68,0.4)",
+                                                        background: "transparent",
+                                                        color: "#ef4444",
+                                                        fontSize: "0.75rem",
+                                                        fontWeight: 700,
+                                                        cursor: "pointer"
+                                                    }}
+                                                >
+                                                    Remove
                                                 </button>
                                             </div>
                                         </div>

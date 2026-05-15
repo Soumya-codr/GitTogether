@@ -84,6 +84,21 @@ router.post("/:id/swipe", requireAuth, async (req, res) => {
     }
 });
 
+// DELETE /api/repos/:id/swipe — remove swipe so repo reappears in discover feed
+// ⚠️ Only deletes the RepoSwipe record — does NOT touch the Repository or any other data
+router.delete("/:id/swipe", requireAuth, async (req, res) => {
+    try {
+        const repoId = req.params.id;
+        await prisma.repoSwipe.deleteMany({
+            where: { userId: req.userId, repoId },
+        });
+        res.json({ success: true });
+    } catch (err) {
+        console.error("❌ Error deleting repo swipe:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET /api/repos/:id/messages — get community chat history for a repo
 router.get("/:id/messages", requireAuth, async (req, res) => {
     try {
