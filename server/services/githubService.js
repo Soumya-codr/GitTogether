@@ -54,6 +54,48 @@ async function fetchReposAndStack(username, accessToken) {
             };
         });
 
+    // For repos without descriptions, try to extract one from README (max 10, 3s timeout)
+    const needDesc = repoData.filter(r => !r.description).slice(0, 10);
+    if (needDesc.length > 0) {
+        await Promise.allSettled(
+            needDesc.map(async (repo) => {
+                try {
+                    const readmeRes = await axios.get(
+                        `https://api.github.com/repos/${username}/${repo.name}/readme`,
+                        {
+                            headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/vnd.github.raw" },
+                            timeout: 3000,
+                        }
+                    );
+                    const content = typeof readmeRes.data === "string" ? readmeRes.data : "";
+                    // Find first meaningful paragraph (skip headings, images, badges, dividers)
+                    const lines = content.split("\n").map(l => l.trim()).filter(l =>
+                        l.length > 15 &&
+                        !l.startsWith("#") &&
+                        !l.startsWith("!") &&
+                        !l.startsWith("[!") &&
+                        !l.startsWith("```") &&
+                        !l.startsWith("|") &&
+                        !l.startsWith("---") &&
+                        !l.match(/^\[.*\]\(.*\)$/)
+                    );
+                    if (lines.length > 0) {
+                        let desc = lines[0]
+                            .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+                            .replace(/\*\*([^*]+)\*\*/g, "$1")
+                            .replace(/\*([^*]+)\*/g, "$1")
+                            .replace(/`([^`]+)`/g, "$1")
+                            .trim();
+                        if (desc.length > 200) desc = desc.substring(0, 197) + "...";
+                        if (desc.length > 15) repo.description = desc;
+                    }
+                } catch {
+                    // Silently skip — repo may not have a README
+                }
+            })
+        );
+    }
+
     // Sort languages by usage, take top 5
     const primaryStack = Object.entries(langCount)
         .sort((a, b) => b[1] - a[1])

@@ -19,6 +19,24 @@ interface Repo {
     };
 }
 
+/** Generate a human-readable fallback when GitHub description is null */
+function generateFallbackDescription(repo: Repo): string {
+    // Humanize repo name: camelCase / kebab-case / snake_case → readable
+    const readableName = repo.name
+        .replace(/[-_]/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+
+    const parts: string[] = [];
+    if (repo.language && repo.language !== 'Unknown') parts.push(`${repo.language} project`);
+    if (repo.topics.length > 0) parts.push(repo.topics.slice(0, 3).join(', '));
+    if (repo.stars > 0) parts.push(`${repo.stars} ⭐`);
+
+    return parts.length > 0
+        ? `${readableName} — ${parts.join(' · ')}`
+        : `${readableName} — Explore this project on GitHub`;
+}
+
 export default function RepoFeed() {
     const [repos, setRepos] = useState<Repo[]>([]);
     const [loading, setLoading] = useState(true);
@@ -135,7 +153,7 @@ export default function RepoFeed() {
                                     </div>
                                 </div>
                                 <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.5, flex: 1 }}>
-                                    {repo.description || "No description provided."}
+                                {repo.description || generateFallbackDescription(repo)}
                                 </p>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "1rem" }}>
                                     {repo.language && (
