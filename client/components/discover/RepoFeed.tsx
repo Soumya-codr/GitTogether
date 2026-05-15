@@ -50,6 +50,7 @@ function RepoCardItem({
     onSwipe: (id: string, type: "like" | "pass") => void;
 }) {
     const dragControls = useDragControls();
+    const repoUrl = repo.url || `https://github.com/${repo.user.username}/${repo.name}`;
 
     return (
         <motion.div
@@ -97,7 +98,7 @@ function RepoCardItem({
                         {repo.user.username}
                     </p>
                     <a
-                        href={repo.url}
+                        href={repoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
@@ -173,7 +174,7 @@ function RepoCardItem({
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        window.open(repo.url, "_blank", "noopener,noreferrer");
+                        window.open(repoUrl, "_blank", "noopener,noreferrer");
                     }}
                     onPointerDown={(e) => e.stopPropagation()}
                     style={{
