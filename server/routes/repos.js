@@ -6,24 +6,19 @@ const requireAuth = require("../middleware/requireAuth");
 // GET /api/repos — fetch discoverable repositories
 router.get("/", requireAuth, async (req, res) => {
     try {
-        // Find IDs of repos this user has already swiped on
-        const swipedRepos = await prisma.repoSwipe.findMany({
-            where: { userId: req.userId },
-            select: { repoId: true }
-        });
-        const swipedIds = swipedRepos.map(s => s.repoId);
-
-        // Fetch repos not belonging to the user and not already swiped
+        // Optimized single-query fetch using 'none' relation filter (Faster than notIn)
         const repos = await prisma.repository.findMany({
             where: { 
                 userId: { not: req.userId },
-                id: { notIn: swipedIds }
+                swipes: {
+                    none: { userId: req.userId }
+                }
             },
             include: { 
                 user: { select: { id: true, username: true, avatarUrl: true } }
             },
             orderBy: { stars: "desc" },
-            take: 20 // Send a batch
+            take: 20
         });
 
         res.json(repos);
@@ -37,28 +32,50 @@ router.get("/", requireAuth, async (req, res) => {
 router.get("/joined", requireAuth, async (req, res) => {
     try {
         // Repos I swiped right on
-        const swiped = await prisma.repoSwipe.findMany({
+        // 1. Get IDs of repos I swiped right on
+        const myLikes = await prisma.repoSwipe.findMany({
             where: { userId: req.userId, swipeType: "like" },
-            include: { repo: true }
+            select: { repoId: true }
         });
-        const swipedRepos = swiped.map(s => s.repo);
+        const likedRepoIds = myLikes.map(s => s.repoId);
 
-        // My own repos that others have swiped right on
-        const myLikedRepos = await prisma.repoSwipe.findMany({
+        // 2. Get IDs of my repos that OTHERS swiped right on
+        const othersLikes = await prisma.repoSwipe.findMany({
             where: { 
                 swipeType: "like",
                 repo: { userId: req.userId }
             },
-            include: { repo: true }
+            select: { repoId: true }
         });
-        
-        // Deduplicate using a Map
-        const repoMap = new Map();
-        swipedRepos.forEach(r => repoMap.set(r.id, r));
-        myLikedRepos.forEach(r => repoMap.set(r.repo.id, r.repo));
+        const matchedRepoIds = othersLikes.map(s => s.repoId);
 
-        res.json(Array.from(repoMap.values()));
+        // 3. Combine and fetch full repo objects with user data
+        const allRelevantIds = [...new Set([...likedRepoIds, ...matchedRepoIds])];
+        
+        const projects = await prisma.repository.findMany({
+            where: { id: { in: allRelevantIds } },
+            include: { 
+                user: { select: { id: true, username: true, avatarUrl: true } } 
+            },
+            orderBy: { stars: "desc" }
+        });
+
+        // 4. Sanitize and Serialize (Ensures no "Unknown" or undefined links reach the client)
+        const sanitized = projects.map(p => {
+            const owner = p.user?.username || "Unknown";
+            let url = p.url;
+            if (!url || url.includes("/Unknown/")) {
+                url = `https://github.com/${owner}/${p.name}`;
+            }
+            return {
+                ...p,
+                url: url || `https://github.com/search?q=${p.name}` // Hard fallback
+            };
+        });
+
+        res.json(sanitized);
     } catch (err) {
+        console.error("❌ Error fetching joined repos:", err.message);
         res.status(500).json({ error: err.message });
     }
 });

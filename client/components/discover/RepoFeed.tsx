@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import api from "@/lib/api";
@@ -36,7 +36,7 @@ function generateFallbackDescription(repo: Repo): string {
         : `Explore ${readableName} on GitHub — contributions welcome!`;
 }
 /** Pure SVG radar chart from existing repo data — no DB needed */
-function RepoMiniGraph({ repo }: { repo: Repo }) {
+const RepoMiniGraph = memo(({ repo }: { repo: Repo }) => {
     const size = 160; // Increased size
     const cx = size / 2;
     const cy = size / 2;
@@ -104,10 +104,10 @@ function RepoMiniGraph({ repo }: { repo: Repo }) {
             </svg>
         </div>
     );
-}
+});
 
 /* ─── Single Card Component (top = draggable, others = stack peek) ─── */
-function RepoCard({
+const RepoCard = memo(({
     repo,
     isTop,
     stackIndex,
@@ -117,20 +117,20 @@ function RepoCard({
     isTop: boolean;
     stackIndex: number;
     onSwipe: (id: string, type: "like" | "pass") => void;
-}) {
+}) => {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-250, 250], [-18, 18]);
     const repoUrl = repo.url || `https://github.com/${repo.user.username}/${repo.name}`;
 
     const handleDragEnd = (_: any, info: any) => {
         if (info.offset.x > 100) {
-            animate(x, 600, { duration: 0.4, ease: "easeOut" });
-            setTimeout(() => onSwipe(repo.id, "like"), 350);
+            animate(x, 600, { duration: 0.25, ease: "easeOut" }); // Faster
+            setTimeout(() => onSwipe(repo.id, "like"), 200);
         } else if (info.offset.x < -100) {
-            animate(x, -600, { duration: 0.4, ease: "easeOut" });
-            setTimeout(() => onSwipe(repo.id, "pass"), 350);
+            animate(x, -600, { duration: 0.25, ease: "easeOut" }); // Faster
+            setTimeout(() => onSwipe(repo.id, "pass"), 200);
         } else {
-            animate(x, 0, { type: "spring", stiffness: 300, damping: 25 });
+            animate(x, 0, { type: "spring", stiffness: 400, damping: 30 });
         }
     };
 
@@ -276,7 +276,7 @@ function RepoCard({
                                     <motion.div 
                                         initial={{ width: 0 }}
                                         animate={{ width: `${item.val}%` }}
-                                        transition={{ duration: 1, delay: 0.5 }}
+                                        transition={{ duration: 0.4, delay: 0.1 }} // Faster
                                         style={{ height: "100%", background: item.color }} 
                                     />
                                 </div>
@@ -359,23 +359,37 @@ function RepoCard({
             </div>
         </motion.div>
     );
-}
+});
 
 
 /* ─── Main Feed Component ─── */
 export default function RepoFeed() {
-    const [repos, setRepos] = useState<Repo[]>([]);
-    const [loading, setLoading] = useState(true);
-    const reposRef = useRef<Repo[]>([]);
+    // Persistent cache in sessionStorage (survives refreshes)
+    const [repos, setRepos] = useState<Repo[]>(() => {
+        if (typeof window !== "undefined") {
+            const cached = sessionStorage.getItem("repo-feed-cache");
+            return cached ? JSON.parse(cached) : [];
+        }
+        return [];
+    });
+    
+    const [loading, setLoading] = useState(repos.length === 0);
+    const reposRef = useRef<Repo[]>(repos);
     const pathname = usePathname();
 
-    useEffect(() => { reposRef.current = repos; }, [repos]);
+    useEffect(() => { 
+        reposRef.current = repos; 
+        if (typeof window !== "undefined") {
+            sessionStorage.setItem("repo-feed-cache", JSON.stringify(repos));
+        }
+    }, [repos]);
 
     useEffect(() => {
         async function fetchRepos() {
             try {
                 const res = await api.get("/api/repos");
                 setRepos(res.data);
+                return res.data;
             } catch (err) {
                 console.error("Failed to fetch repos:", err);
             } finally {
@@ -383,12 +397,20 @@ export default function RepoFeed() {
             }
         }
 
-        // Check if user removed a project from Matches page — if so force fresh fetch
+        // If we have no repos or explicitly need a refresh, fetch now
         const needsRefetch = localStorage.getItem("repos-need-refetch");
-        if (needsRefetch) {
-            localStorage.removeItem("repos-need-refetch");
+        if (needsRefetch || repos.length === 0) {
+            if (needsRefetch) localStorage.removeItem("repos-need-refetch");
+            
+            fetchRepos().then((data) => {
+                if (data && data.length > 0) {
+                    data.slice(0, 5).forEach(r => {
+                        const img = new Image();
+                        img.src = r.user.avatarUrl;
+                    });
+                }
+            });
         }
-        fetchRepos();
     }, []);
 
     const handleSwipe = async (id: string, swipeType: "like" | "pass") => {
@@ -421,7 +443,57 @@ export default function RepoFeed() {
         }
     }, [pathname]);
 
-    if (loading) return <div className="skeleton" style={{ width: "380px", height: "540px", borderRadius: "2rem" }} />;
+    if (loading) return (
+        <div style={{ 
+            width: "100%", 
+            maxWidth: "400px", 
+            height: "560px", 
+            background: "var(--bg-elevated)", 
+            borderRadius: "2rem", 
+            border: "1px solid var(--border)",
+            padding: "1.5rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1.5rem",
+            position: "relative",
+            overflow: "hidden"
+        }}>
+            {/* Shimmer effect */}
+            <div style={{
+                position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent)",
+                animation: "shimmer 2s infinite",
+                transform: "translateX(-100%)"
+            }} />
+            
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+                <div style={{ flex: 1 }}>
+                    <div style={{ width: "40%", height: 10, background: "rgba(255,255,255,0.05)", borderRadius: 5, marginBottom: 8 }} />
+                    <div style={{ width: "60%", height: 14, background: "rgba(255,255,255,0.1)", borderRadius: 5 }} />
+                </div>
+            </div>
+            
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div style={{ width: "100%", height: 3, background: "rgba(255,255,255,0.05)", borderRadius: 2 }} />
+                <div style={{ display: "flex", gap: "1rem" }}>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ width: "100%", height: 12, background: "rgba(255,255,255,0.05)", borderRadius: 5, marginBottom: 8 }} />
+                        <div style={{ width: "100%", height: 12, background: "rgba(255,255,255,0.05)", borderRadius: 5, marginBottom: 8 }} />
+                        <div style={{ width: "80%", height: 12, background: "rgba(255,255,255,0.05)", borderRadius: 5 }} />
+                    </div>
+                    <div style={{ width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
+                </div>
+                <div style={{ width: "100%", height: 100, borderRadius: "1rem", background: "rgba(255,255,255,0.02)" }} />
+            </div>
+
+            <style>{`
+                @keyframes shimmer {
+                    100% { transform: translateX(100%); }
+                }
+            `}</style>
+        </div>
+    );
 
     if (repos.length === 0) {
         return (

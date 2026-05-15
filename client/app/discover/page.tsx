@@ -77,7 +77,8 @@ export default function DiscoverPage() {
         } catch {}
     };
 
-    if (status === "loading" || loading) return <LoadingSpinner />;
+    // Removed full-page spinner to show Navbar immediately
+    const isActuallyLoading = status === "loading" || (loading && deck.length === 0 && intentMode !== "collab");
 
     // Determine which deck to use
     const activeDeck = selectedHackathon ? hackathonDeck : deck;
@@ -148,97 +149,104 @@ export default function DiscoverPage() {
                     </div>
                 )}
 
-                {/* Step 1: Hackathon Browsing Feed (Cards with Buttons) */}
-                {isHackathonBrowsing ? (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem", width: "100%" }}>
-                        <HackathonFeed 
-                            onSelectHackathon={handleSelectHackathon} 
-                            onTopCardChange={(id) => setCurrentHackathonId(id)}
-                        />
-                        {/* THE BUTTONS FOR HACKATHONS */}
-                        <ActionButtons
-                            onPass={() => {
-                                window.dispatchEvent(new CustomEvent('hackathon-swipe', { detail: { type: 'pass' } }));
-                            }}
-                            onSuperLike={() => {
-                                window.dispatchEvent(new CustomEvent('hackathon-swipe', { detail: { type: 'join' } }));
-                            }}
-                            onLike={() => {
-                                window.dispatchEvent(new CustomEvent('hackathon-swipe', { detail: { type: 'join' } }));
-                            }}
-                            accentColor="#fbbf24"
-                            likeLabel="JOIN"
-                        />
-                    </div>
-
-                /* Step 2: Hackathon Partner Matching (loading state) */
-                ) : hackathonLoading ? (
+                {/* Main Content Area */}
+                {isActuallyLoading ? (
                     <LoadingSpinner />
-
-                /* Repo Collaboration Flow */
-                ) : intentMode === "collab" ? (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem", width: "100%" }}>
-                        <RepoFeed />
-                        <ActionButtons
-                            onPass={() => {
-                                window.dispatchEvent(new CustomEvent('repo-swipe', { detail: { type: 'pass' } }));
-                            }}
-                            onLike={() => {
-                                window.dispatchEvent(new CustomEvent('repo-swipe', { detail: { type: 'like' } }));
-                            }}
-                            accentColor="#a78bfa"
-                            likeLabel="BUILD"
-                            onSuperLike={() => {}}
-                        />
-                    </div>
-
-                /* Normal or Hackathon partner swipe flow */
-                ) : activeDeck.length === 0 ? (
-                    <EmptyState
-                        emoji={isHackathonMatching ? "🏆" : "🤷"}
-                        title={isHackathonMatching ? "No teammates yet!" : "You've seen everyone!"}
-                        subtitle={isHackathonMatching
-                            ? `No one else has joined ${selectedHackathon?.name} yet. Share the link to invite devs!`
-                            : intentConfig.emptyMsg || "Check back later — new developers join every day."}
-                        actionLabel={isHackathonMatching ? "Back to Hackathons" : "Refresh"}
-                        onAction={isHackathonMatching ? () => { setSelectedHackathon(null); setHackathonDeck([]); } : fetchDeck}
-                    />
-                ) : intentMode === "networking" ? (
-                    <NetworkingFeed deck={deck} onConnect={handleSwipe} intentConfig={intentConfig} />
                 ) : (
                     <>
-                        {/* Card deck */}
-                        <motion.div
-                            className="card-deck-container"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.4 }}
-                        >
-                            {top3.map((dev, i) => (
-                                <SwipeCard
-                                    key={dev.id}
-                                    developer={dev}
-                                    onSwipe={handleSwipe}
-                                    isTop={i === 0}
-                                    stackIndex={i}
-                                    intentConfig={intentConfig}
+                        {/* Step 1: Hackathon Browsing Feed (Cards with Buttons) */}
+                        {isHackathonBrowsing ? (
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem", width: "100%" }}>
+                                <HackathonFeed 
+                                    onSelectHackathon={handleSelectHackathon} 
+                                    onTopCardChange={(id) => setCurrentHackathonId(id)}
                                 />
-                            ))}
-                        </motion.div>
+                                {/* THE BUTTONS FOR HACKATHONS */}
+                                <ActionButtons
+                                    onPass={() => {
+                                        window.dispatchEvent(new CustomEvent('hackathon-swipe', { detail: { type: 'pass' } }));
+                                    }}
+                                    onSuperLike={() => {
+                                        window.dispatchEvent(new CustomEvent('hackathon-swipe', { detail: { type: 'join' } }));
+                                    }}
+                                    onLike={() => {
+                                        window.dispatchEvent(new CustomEvent('hackathon-swipe', { detail: { type: 'join' } }));
+                                    }}
+                                    accentColor="#fbbf24"
+                                    likeLabel="JOIN"
+                                />
+                            </div>
 
-                        {/* Action buttons */}
-                        <ActionButtons
-                            onPass={() => handleSwipe(current.id, "pass")}
-                            onSuperLike={() => handleSwipe(current.id, "superlike")}
-                            onLike={() => handleSwipe(current.id, "like")}
-                            accentColor={intentConfig.accentColor}
-                            likeLabel={intentConfig.likeLabel}
-                        />
+                        /* Step 2: Hackathon Partner Matching (loading state) */
+                        ) : hackathonLoading ? (
+                            <LoadingSpinner />
 
-                        {/* Queue hint */}
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>
-                            {intentConfig.actionHint} · {activeDeck.length} in queue
-                        </p>
+                        /* Repo Collaboration Flow */
+                        ) : intentMode === "collab" ? (
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem", width: "100%" }}>
+                                <RepoFeed />
+                                <ActionButtons
+                                    onPass={() => {
+                                        window.dispatchEvent(new CustomEvent('repo-swipe', { detail: { type: 'pass' } }));
+                                    }}
+                                    onLike={() => {
+                                        window.dispatchEvent(new CustomEvent('repo-swipe', { detail: { type: 'like' } }));
+                                    }}
+                                    accentColor="#a78bfa"
+                                    likeLabel="BUILD"
+                                    onSuperLike={() => {}}
+                                />
+                            </div>
+
+                        /* Normal or Hackathon partner swipe flow */
+                        ) : activeDeck.length === 0 ? (
+                            <EmptyState
+                                emoji={isHackathonMatching ? "🏆" : "🤷"}
+                                title={isHackathonMatching ? "No teammates yet!" : "You've seen everyone!"}
+                                subtitle={isHackathonMatching
+                                    ? `No one else has joined ${selectedHackathon?.name} yet. Share the link to invite devs!`
+                                    : intentConfig.emptyMsg || "Check back later — new developers join every day."}
+                                actionLabel={isHackathonMatching ? "Back to Hackathons" : "Refresh"}
+                                onAction={isHackathonMatching ? () => { setSelectedHackathon(null); setHackathonDeck([]); } : fetchDeck}
+                            />
+                        ) : intentMode === "networking" ? (
+                            <NetworkingFeed deck={deck} onConnect={handleSwipe} intentConfig={intentConfig} />
+                        ) : (
+                            <>
+                                {/* Card deck */}
+                                <motion.div
+                                    className="card-deck-container"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.4 }}
+                                >
+                                    {top3.map((dev, i) => (
+                                        <SwipeCard
+                                            key={dev.id}
+                                            developer={dev}
+                                            onSwipe={handleSwipe}
+                                            isTop={i === 0}
+                                            stackIndex={i}
+                                            intentConfig={intentConfig}
+                                        />
+                                    ))}
+                                </motion.div>
+
+                                {/* Action buttons */}
+                                <ActionButtons
+                                    onPass={() => handleSwipe(current.id, "pass")}
+                                    onSuperLike={() => handleSwipe(current.id, "superlike")}
+                                    onLike={() => handleSwipe(current.id, "like")}
+                                    accentColor={intentConfig.accentColor}
+                                    likeLabel={intentConfig.likeLabel}
+                                />
+
+                                {/* Queue hint */}
+                                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>
+                                    {intentConfig.actionHint} · {activeDeck.length} in queue
+                                </p>
+                            </>
+                        )}
                     </>
                 )}
             </main>

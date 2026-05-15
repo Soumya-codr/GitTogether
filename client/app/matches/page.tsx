@@ -33,6 +33,7 @@ export default function MatchesPage() {
             api.get(`/api/repos/joined`)
         ])
         .then(([matchesRes, pendingRes, hackathonsRes, reposRes]) => {
+            console.log("DEBUG: Joined Projects Data ->", reposRes.data);
             setMatches(matchesRes.data || []);
             setPending(pendingRes.data || []);
             setHackathons(hackathonsRes.data || []);
@@ -309,12 +310,22 @@ export default function MatchesPage() {
                                             alignItems: "center"
                                         }}>
                                             <div>
-                                                <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                                                    <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "0.4rem", transition: "color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.color = "var(--accent)"} onMouseOut={(e) => e.currentTarget.style.color = "var(--text-primary)"}>
+                                                <div 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const targetUrl = p.url || `https://github.com/search?q=${p.name}`;
+                                                        window.open(targetUrl, '_blank');
+                                                    }}
+                                                    style={{ cursor: "pointer", textDecoration: "none" }}
+                                                >
+                                                    <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "0.4rem", transition: "color 0.2s" }} 
+                                                        onMouseOver={(e) => e.currentTarget.style.color = "var(--accent)"} 
+                                                        onMouseOut={(e) => e.currentTarget.style.color = "var(--text-primary)"}
+                                                    >
                                                         {p.name}
                                                         <span style={{ fontSize: "0.9rem", opacity: 0.6 }}>↗</span>
                                                     </h3>
-                                                </a>
+                                                </div>
                                                 <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
                                                     {p.language || "Unknown"} · {p.stars} stars
                                                 </p>
