@@ -171,12 +171,12 @@ function RepoCardItem({
                 </div>
 
                 {/* ── View on GitHub button ── */}
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(repoUrl, "_blank", "noopener,noreferrer");
-                    }}
+                <a
+                    href={repoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onPointerDown={(e) => e.stopPropagation()}
+                    draggable={false}
                     style={{
                         marginTop: "1rem",
                         padding: "0.6rem 1.2rem",
@@ -193,6 +193,7 @@ function RepoCardItem({
                         gap: "0.5rem",
                         transition: "all 0.2s ease",
                         width: "100%",
+                        textDecoration: "none",
                     }}
                     onMouseOver={(e) => {
                         e.currentTarget.style.background = "rgba(167,139,250,0.2)";
@@ -204,7 +205,7 @@ function RepoCardItem({
                     }}
                 >
                     🔗 View on GitHub
-                </button>
+                </a>
 
                 {isTop && (
                     <div style={{
