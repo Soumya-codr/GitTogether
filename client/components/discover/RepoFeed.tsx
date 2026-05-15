@@ -144,25 +144,42 @@ export default function RepoFeed() {
                                     <img src={repo.user.avatarUrl} alt={repo.user.username} style={{ width: 40, height: 40, borderRadius: "50%" }} />
                                     <div>
                                         <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{repo.user.username}</p>
-                                        <a
-                                            href={repo.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{ textDecoration: "none", position: "relative", zIndex: 10 }}
-                                            onPointerDown={(e) => e.stopPropagation()}
+                                        <div
+                                            role="link"
+                                            tabIndex={0}
+                                            style={{ textDecoration: "none", position: "relative", zIndex: 50, cursor: "pointer", userSelect: "none" }}
+                                            onPointerDown={(e) => {
+                                                e.stopPropagation();
+                                                (e.currentTarget as any)._clickStart = { x: e.clientX, y: e.clientY };
+                                            }}
+                                            onPointerUp={(e) => {
+                                                e.stopPropagation();
+                                                const start = (e.currentTarget as any)._clickStart;
+                                                if (start) {
+                                                    const dx = Math.abs(e.clientX - start.x);
+                                                    const dy = Math.abs(e.clientY - start.y);
+                                                    if (dx < 5 && dy < 5) {
+                                                        // Treat as a click — open the repo URL
+                                                        const link = document.createElement("a");
+                                                        link.href = repo.url;
+                                                        link.target = "_blank";
+                                                        link.rel = "noopener noreferrer";
+                                                        document.body.appendChild(link);
+                                                        link.click();
+                                                        document.body.removeChild(link);
+                                                    }
+                                                }
+                                            }}
                                             onMouseDown={(e) => e.stopPropagation()}
                                             onTouchStart={(e) => e.stopPropagation()}
-                                            onClickCapture={(e) => {
-                                                e.stopPropagation();
-                                                window.open(repo.url, "_blank", "noopener,noreferrer");
-                                            }}
+                                            onKeyDown={(e) => { if (e.key === "Enter") window.open(repo.url, "_blank"); }}
                                             draggable={false}
                                         >
                                             <p style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "0.4rem", transition: "color 0.2s", cursor: "pointer" }} onMouseOver={(e) => e.currentTarget.style.color = "var(--accent)"} onMouseOut={(e) => e.currentTarget.style.color = "var(--text-primary)"}>
                                                 {repo.name}
                                                 <span style={{ fontSize: "0.9rem", opacity: 0.6 }}>↗</span>
                                             </p>
-                                        </a>
+                                        </div>
                                     </div>
                                 </div>
                                 <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.5, flex: 1 }}>
