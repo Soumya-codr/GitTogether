@@ -82,14 +82,26 @@ export default function NetworkingFeed({ deck, onConnect, intentConfig }: Networ
                         <div key={dev.id} className="rounded-xl border border-gray-800 overflow-hidden shadow-lg transition-opacity duration-300" style={{ backgroundColor: "#18181A", opacity: isPending ? 0.6 : 1, display: "flex", flexDirection: "column" }}>
                             <div style={{ padding: "1rem", display: "flex", gap: "1rem" }}>
                                 <img 
+                                    onClick={() => window.open(`https://github.com/${dev.username}`, '_blank')}
                                     src={dev.avatarUrl || `https://ui-avatars.com/api/?name=${dev.username}`} 
                                     alt={dev.username} 
-                                    style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                                    style={{ 
+                                        width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", flexShrink: 0,
+                                        cursor: "pointer", transition: "transform 0.2s"
+                                    }}
+                                    onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.1)"}
+                                    onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
                                 />
                                 <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
                                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
                                         <div style={{ flex: 1, minWidth: 0, paddingRight: "0.5rem" }}>
-                                            <h2 className="text-base font-bold text-white" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: 0 }}>{dev.name || dev.username}</h2>
+                                            <h2 
+                                                onClick={() => window.open(`https://github.com/${dev.username}`, '_blank')}
+                                                className="text-base font-bold text-white hover:text-blue-400 cursor-pointer transition-colors" 
+                                                style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: 0 }}
+                                            >
+                                                {dev.name || dev.username}
+                                            </h2>
                                             <p className="text-xs text-gray-400" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: "0.125rem 0 0 0" }}>{dev.bio || "Software Engineer"}</p>
                                             <p className="text-xs text-gray-500" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: "0.125rem 0 0 0" }}>{dev.location || "Earth"} · <span className="text-blue-400 font-semibold">{dev.compatibilityScore}% Match</span></p>
                                         </div>

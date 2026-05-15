@@ -309,23 +309,39 @@ export default function MatchesPage() {
                                             justifyContent: "space-between",
                                             alignItems: "center"
                                         }}>
-                                            <div>
-                                                <div 
+                                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                                                <img 
+                                                    src={p.user?.avatarUrl || `https://ui-avatars.com/api/?name=${p.user?.username || 'U'}&background=161620&color=E879F9&size=80&bold=true`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        const targetUrl = p.url || `https://github.com/search?q=${p.name}`;
-                                                        window.open(targetUrl, '_blank');
+                                                        window.open(`https://github.com/${p.user?.username}`, '_blank');
                                                     }}
-                                                    style={{ cursor: "pointer", textDecoration: "none" }}
-                                                >
-                                                    <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "0.4rem", transition: "color 0.2s" }} 
-                                                        onMouseOver={(e) => e.currentTarget.style.color = "var(--accent)"} 
-                                                        onMouseOut={(e) => e.currentTarget.style.color = "var(--text-primary)"}
+                                                    alt={p.user?.username}
+                                                    style={{ 
+                                                        width: 44, height: 44, borderRadius: "50%", flexShrink: 0, cursor: "pointer",
+                                                        border: "1.5px solid rgba(255,255,255,0.05)",
+                                                        transition: "transform 0.2s"
+                                                    }}
+                                                    onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+                                                    onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
+                                                />
+                                                <div>
+                                                    <div 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const targetUrl = p.url || `https://github.com/search?q=${p.name}`;
+                                                            window.open(targetUrl, '_blank');
+                                                        }}
+                                                        style={{ cursor: "pointer", textDecoration: "none" }}
                                                     >
-                                                        {p.name}
-                                                        <span style={{ fontSize: "0.9rem", opacity: 0.6 }}>↗</span>
-                                                    </h3>
-                                                </div>
+                                                        <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "0.4rem", transition: "color 0.2s" }} 
+                                                            onMouseOver={(e) => e.currentTarget.style.color = "var(--accent)"} 
+                                                            onMouseOut={(e) => e.currentTarget.style.color = "var(--text-primary)"}
+                                                        >
+                                                            {p.name}
+                                                            <span style={{ fontSize: "0.9rem", opacity: 0.6 }}>↗</span>
+                                                        </h3>
+                                                    </div>
                                                 <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
                                                     {p.language || "Unknown"} · {p.stars} stars
                                                 </p>
@@ -335,6 +351,7 @@ export default function MatchesPage() {
                                                             {t}
                                                         </span>
                                                     ))}
+                                                </div>
                                                 </div>
                                             </div>
                                             <div style={{ display: "flex", gap: "0.5rem", flexDirection: "column" }}>

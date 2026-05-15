@@ -191,13 +191,40 @@ const RepoCard = memo(({
                 onPointerDown={(e) => e.stopPropagation()}
             >
                 <img
+                    onClick={() => window.open(`https://github.com/${repo.user.username}`, '_blank')}
                     src={repo.user.avatarUrl}
                     alt={repo.user.username}
-                    style={{ width: 44, height: 44, borderRadius: "50%", flexShrink: 0 }}
+                    style={{ 
+                        width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
+                        transition: "transform 0.2s, box-shadow 0.2s",
+                        border: "1.5px solid rgba(255,255,255,0.05)",
+                        cursor: "pointer"
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.transform = "scale(1.08)";
+                        e.currentTarget.style.boxShadow = "0 0 15px rgba(167,139,250,0.5)";
+                        e.currentTarget.style.borderColor = "rgba(167,139,250,0.4)";
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = "none";
+                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
+                    }}
                     draggable={false}
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", margin: 0 }}>
+                    <p 
+                        onClick={() => window.open(`https://github.com/${repo.user.username}`, '_blank')}
+                        style={{ 
+                            fontSize: "0.8rem", 
+                            color: "var(--text-secondary)", 
+                            margin: 0,
+                            transition: "color 0.2s",
+                            cursor: "pointer"
+                        }}
+                        onMouseOver={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+                        onMouseOut={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                    >
                         {repo.user.username}
                     </p>
                     <a

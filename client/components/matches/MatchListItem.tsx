@@ -84,6 +84,11 @@ export default function MatchListItem({ matchId, partner, lastMessage, compatibi
                             {/* Avatar with online dot */}
                             <div style={{ position: "relative", flexShrink: 0 }}>
                                 <img
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        window.open(`https://github.com/${partner.username}`, '_blank');
+                                    }}
                                     src={partner.avatarUrl || `https://ui-avatars.com/api/?name=${partner.username}&background=161620&color=E879F9&size=80&bold=true`}
                                     alt={partner.username}
                                     style={{
@@ -92,7 +97,11 @@ export default function MatchListItem({ matchId, partner, lastMessage, compatibi
                                         border: `2px solid ${scoreColor}40`,
                                         display: "block",
                                         objectFit: "cover",
+                                        cursor: "pointer",
+                                        transition: "transform 0.2s"
                                     }}
+                                    onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.1)"}
+                                    onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
                                 />
                                 <span style={{
                                     position: "absolute", bottom: 1, right: 1,

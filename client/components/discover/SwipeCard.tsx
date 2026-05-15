@@ -342,6 +342,7 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                 }}>
                     {/* Avatar as full-bleed image */}
                     <img
+                        onClick={() => window.open(`https://github.com/${developer.username}`, '_blank')}
                         src={developer.avatarUrl || `https://ui-avatars.com/api/?name=${developer.username}&background=161620&color=E879F9&size=400&bold=true`}
                         alt={developer.username}
                         style={{
@@ -349,6 +350,7 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                             height: "100%",
                             objectFit: "cover",
                             display: "block",
+                            cursor: "pointer",
                         }}
                     />
                     {/* Gradient overlay */}
@@ -406,7 +408,19 @@ export function SwipeCard({ developer, onSwipe, isTop, stackIndex, intentConfig 
                         }}>
                             {developer.name || developer.username}
                         </h2>
-                        <p style={{ fontSize: "0.82rem", color: "var(--accent-light)", fontWeight: 600, marginTop: "0.15rem" }}>
+                        <p 
+                            onClick={() => window.open(`https://github.com/${developer.username}`, '_blank')}
+                            style={{ 
+                                fontSize: "0.82rem", 
+                                color: "var(--accent-light)", 
+                                fontWeight: 600, 
+                                marginTop: "0.15rem",
+                                cursor: "pointer",
+                                transition: "color 0.2s"
+                            }}
+                            onMouseOver={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+                            onMouseOut={(e) => (e.currentTarget.style.color = "var(--accent-light)")}
+                        >
                             @{developer.username}
                         </p>
                     </div>
