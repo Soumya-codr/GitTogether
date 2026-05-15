@@ -169,6 +169,42 @@ function RepoCardItem({
                     </span>
                 </div>
 
+                {/* ── View on GitHub button ── */}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(repo.url, "_blank", "noopener,noreferrer");
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    style={{
+                        marginTop: "1rem",
+                        padding: "0.6rem 1.2rem",
+                        borderRadius: "1rem",
+                        border: "1px solid rgba(167,139,250,0.3)",
+                        background: "rgba(167,139,250,0.1)",
+                        color: "#a78bfa",
+                        fontSize: "0.85rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.5rem",
+                        transition: "all 0.2s ease",
+                        width: "100%",
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.background = "rgba(167,139,250,0.2)";
+                        e.currentTarget.style.borderColor = "rgba(167,139,250,0.5)";
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.background = "rgba(167,139,250,0.1)";
+                        e.currentTarget.style.borderColor = "rgba(167,139,250,0.3)";
+                    }}
+                >
+                    🔗 View on GitHub
+                </button>
+
                 {isTop && (
                     <div style={{
                         textAlign: "center", fontSize: "0.7rem",
