@@ -21,6 +21,7 @@ export default function ChatPage() {
     const [messages, setMessages] = useState<any[]>([]);
     const [myId, setMyId] = useState<string | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
+    const [isConnected, setIsConnected] = useState(socket.connected);
 
     useEffect(() => { if (status === "unauthenticated") router.replace("/"); }, [status, router]);
 
@@ -36,25 +37,22 @@ export default function ChatPage() {
             const res = await api.get(`/api/messages/${matchId}`);
             setMessages(res.data);
             
-            // Get partner name from the first message sent by them or from the match data
-            // For now, let's just fetch it from the first message that's not from me
             const otherMsg = res.data.find((m: any) => m.sender.id !== myId);
             if (otherMsg) setPartnerName(otherMsg.sender.name || otherMsg.sender.username);
 
-            setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 80);
+            setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
         } catch { }
     };
 
-    const [isConnected, setIsConnected] = useState(false);
-
     useEffect(() => {
-        if (matchId && status === "authenticated" && myId) {
+        if (matchId && status === "authenticated") {
             fetchMessages();
 
-            // Socket setup
-            console.log("🔌 Initializing connection for room:", matchId);
-            socket.io.opts.query = { matchId }; // Optional: pass matchId in query
-            socket.connect();
+            // Connect if not already connected
+            if (!socket.connected) {
+                console.log("🔌 Connecting socket...");
+                socket.connect();
+            }
 
             const onConnect = () => {
                 console.log("✅ Socket connected. Joining room:", matchId);
@@ -68,30 +66,40 @@ export default function ChatPage() {
             };
 
             const onNewMessage = (newMsg: any) => {
-                console.log("📩 New real-time message received:", newMsg);
+                console.log("📩 Real-time message received for match:", newMsg.matchId);
+                // Verify it belongs to THIS match room (safety check)
+                if (newMsg.matchId && newMsg.matchId !== matchId) {
+                    console.warn("⚠️ Received message for a different room:", newMsg.matchId);
+                    return;
+                }
+                
                 setMessages((prev) => {
                     if (prev.find(m => m.id === newMsg.id)) return prev;
                     return [...prev, newMsg];
                 });
-                setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 80);
+                setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
             };
 
             socket.on("connect", onConnect);
             socket.on("disconnect", onDisconnect);
             socket.on("new-message", onNewMessage);
 
-            // If already connected when effect runs
-            if (socket.connected) onConnect();
+            // If already connected, join room immediately
+            if (socket.connected) {
+                onConnect();
+            }
 
             return () => {
-                console.log("🧹 Cleanup: removing listeners for room:", matchId);
+                console.log("🧹 Leaving room:", matchId);
                 socket.off("connect", onConnect);
                 socket.off("disconnect", onDisconnect);
                 socket.off("new-message", onNewMessage);
-                socket.disconnect();
+                // We DON'T disconnect the socket globally here to allow seamless transitions
+                // But we could emit a leave-room if we had that handler on server
+                socket.emit("leave-room", matchId);
             };
         }
-    }, [matchId, status, myId]);
+    }, [matchId, status]); // Removed myId dependency to connect faster
 
     const handleSend = async (text: string) => {
         try {

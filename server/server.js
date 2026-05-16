@@ -44,7 +44,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket"], // Force WebSocket ONLY to avoid 400 errors on Render/Vercel
+  transports: ["websocket", "polling"], // Allow polling fallback for better local/proxy compatibility
 });
 
 console.log("🌐 Socket.io initialized in PERMISSIVE CORS mode with WebSocket-only transport.");
@@ -81,6 +81,11 @@ io.on("connection", (socket) => {
     socket.join(matchId);
     const roomSize = io.sockets.adapter.rooms.get(matchId)?.size || 0;
     console.log(`🏠 Socket ${socket.id} joined room: ${matchId}. Total in room: ${roomSize}`);
+  });
+
+  socket.on("leave-room", (matchId) => {
+    socket.leave(matchId);
+    console.log(`🏠 Socket ${socket.id} left room: ${matchId}`);
   });
 
   socket.on("disconnect", () => {

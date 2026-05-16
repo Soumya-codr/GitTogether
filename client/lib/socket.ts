@@ -5,7 +5,8 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 export const socket = io(SOCKET_URL, {
     autoConnect: false,
     withCredentials: true,
-    transports: ["websocket"], // Force WebSocket ONLY to avoid 400 errors on Render
+    // Prefer websocket but allow polling fallback for better compatibility
+    transports: ["websocket", "polling"], 
     reconnection: true,
     reconnectionAttempts: Infinity,
     reconnectionDelay: 1000,
